@@ -1,0 +1,249 @@
+[
+  {
+    "id": 1,
+    "exercise_name": "Flat Barbell Bench Press",
+    "target_muscle": "Middle Chest",
+    "muscle_group": "Chest",
+    "equipment_used": ["Flat Bench", "Olympic Flat Bar", "Weight Plates"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Smith Machine Flat Press", "Dumbbell Press"],
+    "video_tutorial_link": "https://www.youtube.com/watch?v=yDLCHaVE_ek"
+  },
+  {
+    "id": 2,
+    "exercise_name": "Machine Pec Fly",
+    "target_muscle": "Middle Chest",
+    "muscle_group": "Chest",
+    "equipment_used": ["Pec Fly/Rear Delt Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Cable Crossover", "Dumbbell Fly"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=machine+pec+fly+tutorial"
+  },
+  {
+    "id": 3,
+    "exercise_name": "Incline Dumbbell Press",
+    "target_muscle": "Upper Chest",
+    "muscle_group": "Chest",
+    "equipment_used": ["Incline Bench", "Dumbbells"],
+    "difficulty": "Intermediate",
+    "alternatives": [
+      "Incline Chest Press Machine",
+      "Smith Machine Incline Press"
+    ],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=incline+dumbbell+press+tutorial+form"
+  },
+  {
+    "id": 4,
+    "exercise_name": "Cable Crossover",
+    "target_muscle": "Lower Chest",
+    "muscle_group": "Chest",
+    "equipment_used": ["Cable Crossover Machine"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Decline Bench Press"],
+    "video_tutorial_link": "https://www.youtube.com/watch?v=JUDTGZh4rhg"
+  },
+  {
+    "id": 5,
+    "exercise_name": "Wide-Grip Lat Pulldown",
+    "target_muscle": "Lats",
+    "muscle_group": "Back",
+    "equipment_used": ["Lat Pull Down Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Assisted Pull-ups", "Long Pull Row"],
+    "video_tutorial_link": "https://www.youtube.com/watch?v=SALxEARiMkw"
+  },
+  {
+    "id": 6,
+    "exercise_name": "Seated Cable Row",
+    "target_muscle": "Rhomboids / Traps",
+    "muscle_group": "Back",
+    "equipment_used": ["Long Pull Row Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["T-Bar Row", "Dumbbell Row"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=seated+cable+row+tutorial"
+  },
+  {
+    "id": 7,
+    "exercise_name": "Barbell Deadlift",
+    "target_muscle": "Lower Back / Hamstrings",
+    "muscle_group": "Back",
+    "equipment_used": ["Olympic Flat Bar", "Weight Plates"],
+    "difficulty": "Advanced",
+    "alternatives": ["Back Hyperextension", "Prone Leg Curl"],
+    "video_tutorial_link": "https://www.youtube.com/watch?v=op9kVnSso6Q"
+  },
+  {
+    "id": 8,
+    "exercise_name": "Back Hyperextension",
+    "target_muscle": "Erector Spinae",
+    "muscle_group": "Back",
+    "equipment_used": ["Back Extension Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Super-mans"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=back+extension+machine+tutorial"
+  },
+  {
+    "id": 9,
+    "exercise_name": "Seated Machine Lateral Raise",
+    "target_muscle": "Lateral Deltoid",
+    "muscle_group": "Shoulder",
+    "equipment_used": ["Seated Lateral Raise Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Dumbbell Lateral Raise", "Cable Lateral Raise"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=seated+machine+lateral+raise+tutorial"
+  },
+  {
+    "id": 10,
+    "exercise_name": "Dumbbell Shoulder Press",
+    "target_muscle": "Anterior Deltoid",
+    "muscle_group": "Shoulder",
+    "equipment_used": ["Super Bench", "Dumbbells"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Vertical Seated Chest Press"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=seated+dumbbell+shoulder+press+tutorial"
+  },
+  {
+    "id": 11,
+    "exercise_name": "Machine Rear Delt Fly",
+    "target_muscle": "Posterior Deltoid",
+    "muscle_group": "Shoulder",
+    "equipment_used": ["Pec Fly/Rear Delt Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Cable Face Pulls", "Dumbbell Reverse Fly"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=machine+rear+delt+fly+tutorial"
+  },
+  {
+    "id": 12,
+    "exercise_name": "EZ Bar Preacher Curl",
+    "target_muscle": "Short Head (Inner)",
+    "muscle_group": "Bicep",
+    "equipment_used": ["Preacher Curl Machine", "EZ Curl Bar"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Machine Bicep Curl", "Dumbbell Concentration Curls"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=ez+bar+preacher+curl+tutorial"
+  },
+  {
+    "id": 13,
+    "exercise_name": "Standing Cable Curl",
+    "target_muscle": "Long Head (Outer)",
+    "muscle_group": "Bicep",
+    "equipment_used": ["Cable Crossover Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Dumbbell Alternate Bicep Curls", "EZ Bar Curls"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=standing+cable+bicep+curl+tutorial"
+  },
+  {
+    "id": 14,
+    "exercise_name": "Tricep Cable Pushdown",
+    "target_muscle": "Lateral Head",
+    "muscle_group": "Tricep",
+    "equipment_used": ["Cable Crossover Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Tricep Kickbacks"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=tricep+cable+pushdown+tutorial"
+  },
+  {
+    "id": 15,
+    "exercise_name": "Tricep Bar Skullcrusher",
+    "target_muscle": "Long Head",
+    "muscle_group": "Tricep",
+    "equipment_used": ["Flat Bench", "Tricep Bar", "Weight Plates"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Overhead Cable Tricep Extension"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=tricep+bar+skullcrusher"
+  },
+  {
+    "id": 16,
+    "exercise_name": "Assisted Dip",
+    "target_muscle": "Triceps (All Heads)",
+    "muscle_group": "Tricep",
+    "equipment_used": ["Assisted Dip Chin Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Bench Dips"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=assisted+tricep+dip+machine+tutorial"
+  },
+  {
+    "id": 17,
+    "exercise_name": "Barbell Back Squat",
+    "target_muscle": "Quadriceps / Glutes",
+    "muscle_group": "Leg",
+    "equipment_used": [
+      "Power Rack/Cage Machine",
+      "Olympic Flat Bar",
+      "Weight Plates"
+    ],
+    "difficulty": "Advanced",
+    "alternatives": ["Leg Press", "Smith Machine Squat"],
+    "video_tutorial_link": "https://www.youtube.com/watch?v=bEv6CCg2BC8"
+  },
+  {
+    "id": 18,
+    "exercise_name": "Leg Press",
+    "target_muscle": "Quadriceps",
+    "muscle_group": "Leg",
+    "equipment_used": ["Leg Press Machine", "Weight Plates"],
+    "difficulty": "Beginner",
+    "alternatives": ["Dumbbell Goblet Squats"],
+    "video_tutorial_link": "https://www.youtube.com/watch?v=mARqOsjn7IA"
+  },
+  {
+    "id": 19,
+    "exercise_name": "Leg Extension",
+    "target_muscle": "Quadriceps",
+    "muscle_group": "Leg",
+    "equipment_used": ["Leg Extension Machine"],
+    "difficulty": "Beginner",
+    "alternatives": [],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=leg+extension+machine+tutorial"
+  },
+  {
+    "id": 20,
+    "exercise_name": "Prone Leg Curl",
+    "target_muscle": "Hamstrings",
+    "muscle_group": "Leg",
+    "equipment_used": ["Prone Leg Curl Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Dumbbell Romanian Deadlifts"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=prone+leg+curl+machine+tutorial"
+  },
+  {
+    "id": 21,
+    "exercise_name": "Seated Calf Raise",
+    "target_muscle": "Soleus (Calf)",
+    "muscle_group": "Leg",
+    "equipment_used": ["Seated Calf Machine", "Weight Plates"],
+    "difficulty": "Beginner",
+    "alternatives": ["Standing Calf Raises"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=seated+calf+raise+machine+tutorial"
+  },
+  {
+    "id": 22,
+    "exercise_name": "Machine Glute Kickback",
+    "target_muscle": "Gluteus Maximus",
+    "muscle_group": "Leg",
+    "equipment_used": ["Glute Kickback Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Cable Glute Kickbacks"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=machine+glute+kickback+tutorial"
+  },
+  {
+    "id": 23,
+    "exercise_name": "Ab Wheel Rollout",
+    "target_muscle": "Rectus Abdominis",
+    "muscle_group": "Core",
+    "equipment_used": ["Ab Wheel", "Yoga Mats"],
+    "difficulty": "Advanced",
+    "alternatives": ["Plank", "Decline Sit-ups"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=ab+wheel+rollout+tutorial"
+  },
+  {
+    "id": 24,
+    "exercise_name": "Decline Sit-ups",
+    "target_muscle": "Rectus Abdominis",
+    "muscle_group": "Core",
+    "equipment_used": ["Abdominal Board Adjustable"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Gym Ball Crunches"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=decline+bench+sit+ups+tutorial"
+  }
+]

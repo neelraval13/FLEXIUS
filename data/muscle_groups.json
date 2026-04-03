@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "major_group": "Chest",
+    "target_muscles": [
+      "Upper Chest (Clavicular Head)",
+      "Middle Chest (Sternal Head)",
+      "Lower Chest (Costal Head)",
+      "Pectoralis Minor"
+    ]
+  },
+  {
+    "id": 2,
+    "major_group": "Back",
+    "target_muscles": [
+      "Latissimus Dorsi (Lats)",
+      "Trapezius (Upper, Middle, Lower Traps)",
+      "Rhomboids",
+      "Erector Spinae (Lower Back)",
+      "Teres Major/Minor"
+    ]
+  },
+  {
+    "id": 3,
+    "major_group": "Shoulder",
+    "target_muscles": [
+      "Anterior Deltoid (Front Delt)",
+      "Lateral Deltoid (Side Delt)",
+      "Posterior Deltoid (Rear Delt)",
+      "Rotator Cuff"
+    ]
+  },
+  {
+    "id": 4,
+    "major_group": "Bicep",
+    "target_muscles": [
+      "Long Head (Outer)",
+      "Short Head (Inner)",
+      "Brachialis",
+      "Brachioradialis (Forearm)"
+    ]
+  },
+  {
+    "id": 5,
+    "major_group": "Tricep",
+    "target_muscles": ["Long Head", "Lateral Head", "Medial Head"]
+  },
+  {
+    "id": 6,
+    "major_group": "Leg",
+    "target_muscles": [
+      "Quadriceps (Quads)",
+      "Hamstrings",
+      "Gluteus Maximus (Glutes)",
+      "Gluteus Medius/Minimus (Side Glutes)",
+      "Calves - Gastrocnemius (Outer Calf)",
+      "Calves - Soleus (Inner/Lower Calf)",
+      "Adductors (Inner Thigh)",
+      "Abductors (Outer Thigh)"
+    ]
+  }
+]

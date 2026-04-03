@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "exercise_name": "Treadmill Intervals",
+    "target_muscle": "Cardiovascular System",
+    "category": "Cardio",
+    "equipment_used": ["Treadmill"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Elliptical Intervals", "Outdoor Sprints"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=treadmill+interval+workout+for+beginners"
+  },
+  {
+    "id": 2,
+    "exercise_name": "Steady State Elliptical",
+    "target_muscle": "Cardiovascular System",
+    "category": "Cardio",
+    "equipment_used": ["Elliptical Bike"],
+    "difficulty": "Beginner",
+    "alternatives": ["Upright Bike Steady State"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=how+to+use+elliptical+machine+properly"
+  },
+  {
+    "id": 3,
+    "exercise_name": "Burpees",
+    "target_muscle": "Full Body / Cardio",
+    "category": "Cardio",
+    "equipment_used": ["Yoga Mats"],
+    "difficulty": "Advanced",
+    "alternatives": ["Jumping Jacks", "Mountain Climbers"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=how+to+do+a+proper+burpee"
+  },
+  {
+    "id": 4,
+    "exercise_name": "Standard Forearm Plank",
+    "target_muscle": "Transverse Abdominis",
+    "category": "Core",
+    "equipment_used": ["Yoga Mats"],
+    "difficulty": "Beginner",
+    "alternatives": ["Knee Plank", "Gym Ball Plank"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=how+to+do+a+forearm+plank"
+  },
+  {
+    "id": 5,
+    "exercise_name": "Gym Ball Crunches",
+    "target_muscle": "Rectus Abdominis",
+    "category": "Core",
+    "equipment_used": ["Gym Ball"],
+    "difficulty": "Beginner",
+    "alternatives": ["Floor Crunches", "Decline Sit-ups"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=stability+ball+crunches+tutorial"
+  },
+  {
+    "id": 6,
+    "exercise_name": "Hollow Body Hold",
+    "target_muscle": "Rectus Abdominis / Core",
+    "category": "Core",
+    "equipment_used": ["Yoga Mats"],
+    "difficulty": "Advanced",
+    "alternatives": ["Dead Bug Exercise"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=hollow+body+hold+tutorial"
+  },
+  {
+    "id": 7,
+    "exercise_name": "Machine Torso Twists",
+    "target_muscle": "External / Internal Obliques",
+    "category": "Obliques",
+    "equipment_used": ["Standing Twister Machine"],
+    "difficulty": "Beginner",
+    "alternatives": ["Russian Twists"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=standing+twister+machine+tutorial"
+  },
+  {
+    "id": 8,
+    "exercise_name": "Russian Twists",
+    "target_muscle": "External / Internal Obliques",
+    "category": "Obliques",
+    "equipment_used": ["Yoga Mats", "Weight Plates"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Machine Torso Twists", "Bicycle Crunches"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=how+to+do+russian+twists"
+  },
+  {
+    "id": 9,
+    "exercise_name": "Side Plank",
+    "target_muscle": "Obliques",
+    "category": "Obliques",
+    "equipment_used": ["Yoga Mats"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Modified Knee Side Plank"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=how+to+do+a+side+plank"
+  },
+  {
+    "id": 10,
+    "exercise_name": "Cat-Cow Stretch",
+    "target_muscle": "Spinal Erectors / Core",
+    "category": "Stretching",
+    "equipment_used": ["Yoga Mats"],
+    "difficulty": "Beginner",
+    "alternatives": ["Cobra Pose"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=cat+cow+stretch+tutorial"
+  },
+  {
+    "id": 11,
+    "exercise_name": "Cobra Pose",
+    "target_muscle": "Abdominals / Lower Back",
+    "category": "Stretching",
+    "equipment_used": ["Yoga Mats"],
+    "difficulty": "Beginner",
+    "alternatives": ["Upward-Facing Dog"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=cobra+pose+yoga+stretch"
+  },
+  {
+    "id": 12,
+    "exercise_name": "Myofascial Release (Back & Legs)",
+    "target_muscle": "Fascia / General Musculature",
+    "category": "Stretching & Recovery",
+    "equipment_used": ["Textured Foam Roller", "Yoga Mats"],
+    "difficulty": "Intermediate",
+    "alternatives": ["Static Stretching"],
+    "video_tutorial_link": "https://www.youtube.com/results?search_query=how+to+use+textured+foam+roller"
+  }
+]
