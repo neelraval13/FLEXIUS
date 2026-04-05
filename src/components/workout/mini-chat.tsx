@@ -4,11 +4,12 @@
 import type React from "react";
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send } from "lucide-react";
+import { Send, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import MessageBubble from "@/components/chat/message-bubble";
 import TypingIndicator from "@/components/chat/typing-indicator";
+import { useVoiceInput } from "@/lib/use-voice-input";
 import type { ChatMessage } from "@/types/chat";
 
 interface MiniChatProps {
@@ -21,6 +22,13 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const { isListening, isSupported, transcript, toggleListening } =
+    useVoiceInput({
+      onTranscript: (text) => {
+        setInput((prev) => (prev ? `${prev} ${text}` : text));
+      },
+    });
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -145,15 +153,43 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
 
       {/* Input Area */}
       <div className="border-t border-border bg-background p-2">
+        {isListening && (
+          <div className="mb-1.5 flex items-center justify-center gap-1.5 text-[11px] text-primary">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+            </span>
+            {transcript ? `"${transcript}"` : "Listening..."}
+          </div>
+        )}
         <div className="flex items-end gap-1.5">
           <Textarea
-            value={input}
+            value={
+              isListening && transcript
+                ? `${input} ${transcript}`.trim()
+                : input
+            }
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask about your workout..."
             className="max-h-20 flex-1 resize-none text-sm!"
             rows={1}
           />
+          {isSupported && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={toggleListening}
+              disabled={isLoading}
+              className={`h-8 w-8 shrink-0 ${isListening ? "text-primary bg-primary/10" : ""}`}
+            >
+              {isListening ? (
+                <MicOff className="h-3.5 w-3.5" />
+              ) : (
+                <Mic className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          )}
           <Button
             size="icon"
             onClick={sendMessage}

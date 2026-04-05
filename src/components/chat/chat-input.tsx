@@ -3,8 +3,9 @@
 import type React from "react";
 import { useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ImagePlus } from "lucide-react";
+import { ArrowUp, ImagePlus, Mic, MicOff } from "lucide-react";
 import ImagePreview from "@/components/chat/image-preview";
+import { useVoiceInput } from "@/lib/use-voice-input";
 
 interface ChatInputProps {
   value: string;
@@ -30,6 +31,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { isListening, isSupported, transcript, toggleListening } =
+    useVoiceInput({
+      onTranscript: (text) => {
+        onChange(value ? `${value} ${text}` : text);
+      },
+    });
 
   const adjustHeight = useCallback(() => {
     const textarea = textareaRef.current;
@@ -69,9 +77,20 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const canSend = (value.trim().length > 0 || !!imageUrl) && !isLoading;
+  const displayValue =
+    isListening && transcript ? `${value} ${transcript}`.trim() : value;
 
   return (
     <div className="border-t border-border bg-background p-3">
+      {isListening && (
+        <div className="mb-2 flex items-center justify-center gap-2 text-xs text-primary">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+          </span>
+          {transcript ? `"${transcript}"` : "Listening..."}
+        </div>
+      )}
       <div className="flex items-end gap-2 rounded-2xl bg-muted px-3 py-2">
         {imageUrl && (
           <div className="mb-1 w-full">
@@ -96,13 +115,28 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </Button>
         <textarea
           ref={textareaRef}
-          value={value}
+          value={displayValue}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           placeholder="Ask your Flexius coach..."
           rows={1}
           className="max-h-40 min-h-9 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm text-foreground placeholder-muted-foreground outline-none"
         />
+        {isSupported && (
+          <Button
+            size="icon"
+            variant="ghost"
+            className={`size-8 shrink-0 rounded-full ${isListening ? "text-primary bg-primary/10" : ""}`}
+            onClick={toggleListening}
+            disabled={isLoading}
+          >
+            {isListening ? (
+              <MicOff className="size-4" />
+            ) : (
+              <Mic className="size-4" />
+            )}
+          </Button>
+        )}
         <Button
           size="icon"
           className="size-8 shrink-0 rounded-full"
