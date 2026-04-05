@@ -16,7 +16,7 @@ export interface PendingLog {
 
 const DB_NAME = "flexius-offline";
 const STORE_NAME = "pending-logs";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
@@ -26,6 +26,9 @@ const openDB = (): Promise<IDBDatabase> => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains("plan-cache")) {
+        db.createObjectStore("plan-cache");
       }
     };
 

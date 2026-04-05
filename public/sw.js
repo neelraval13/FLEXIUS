@@ -1,6 +1,6 @@
 // public/sw.js
 // ─── Cache Config ────────────────────────────────────────────────────
-const CACHE_VERSION = 2;
+const CACHE_VERSION = 3;
 const STATIC_CACHE = `flexius-static-v${CACHE_VERSION}`;
 const PAGES_CACHE = `flexius-pages-v${CACHE_VERSION}`;
 const ALL_CACHES = [STATIC_CACHE, PAGES_CACHE];
@@ -12,6 +12,7 @@ const MAX_PAGES_ENTRIES = 20;
 // Precached on install — the app shell + offline fallback
 const PRECACHE_URLS = [
   "/offline.html",
+  "/offline-workout.html",
   "/login",
   "/logo-144.webp",
   "/logo-96.webp",
@@ -41,21 +42,13 @@ const cacheFirst = async (request) => {
   const cached = await caches.match(request);
   if (cached) return cached;
 
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, response.clone());
-      trimCache(STATIC_CACHE, MAX_STATIC_ENTRIES);
-    }
-    return response;
-  } catch {
-    // Offline and not cached — return empty response for non-critical assets
-    return new Response("", {
-      status: 408,
-      statusText: "Cached asset unavailable offline",
-    });
+  const response = await fetch(request);
+  if (response.ok) {
+    const cache = await caches.open(STATIC_CACHE);
+    cache.put(request, response.clone());
+    trimCache(STATIC_CACHE, MAX_STATIC_ENTRIES);
   }
+  return response;
 };
 
 /**
@@ -77,6 +70,11 @@ const networkFirst = async (request) => {
 
     // Nothing cached — show offline page for navigation requests
     if (request.mode === "navigate") {
+      const url = new URL(request.url);
+      // Serve the dedicated offline workout page for /workout/today
+      if (url.pathname === "/workout/today") {
+        return caches.match("/offline-workout.html");
+      }
       return caches.match("/offline.html");
     }
 

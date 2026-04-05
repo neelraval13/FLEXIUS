@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Today's Workout | Flexius</title>
+        <meta name="theme-color" content="#0B1120" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                background: #0b1120;
+                color: #ebeef3;
+                min-height: 100svh;
+                padding: 1rem;
+                padding-bottom: 5rem;
+            }
+
+            /* Offline banner */
+            .offline-banner {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: rgba(245, 158, 11, 0.1);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                border-radius: 0.75rem;
+                padding: 0.625rem 1rem;
+                font-size: 0.813rem;
+                color: #fcd34d;
+                margin-bottom: 1rem;
+            }
+
+            .offline-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #f59e0b;
+                animation: pulse 2s ease-in-out infinite;
+                flex-shrink: 0;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.3;
+                }
+            }
+
+            /* Header */
+            .header {
+                margin-bottom: 1.25rem;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+                font-weight: 700;
+            }
+
+            .header .date {
+                font-size: 0.813rem;
+                color: #8891a5;
+                margin-top: 0.25rem;
+            }
+
+            .header .notes {
+                font-size: 0.875rem;
+                color: #8891a5;
+                margin-top: 0.5rem;
+                font-style: italic;
+            }
+
+            /* Progress bar */
+            .progress-wrap {
+                margin-bottom: 1.25rem;
+            }
+
+            .progress-text {
+                font-size: 0.75rem;
+                color: #8891a5;
+                margin-bottom: 0.375rem;
+            }
+
+            .progress-bar {
+                height: 6px;
+                background: #1e2d4a;
+                border-radius: 3px;
+                overflow: hidden;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: #10b981;
+                border-radius: 3px;
+                transition: width 0.3s;
+            }
+
+            /* Exercise card */
+            .exercise-card {
+                background: #111b33;
+                border: 1px solid #1e2d4a;
+                border-radius: 0.75rem;
+                padding: 1rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .exercise-card.completed {
+                border-color: rgba(16, 185, 129, 0.2);
+                background: rgba(16, 185, 129, 0.03);
+            }
+
+            .exercise-card.queued {
+                border-color: rgba(245, 158, 11, 0.2);
+                background: rgba(245, 158, 11, 0.03);
+            }
+
+            .card-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 0.5rem;
+            }
+
+            .card-header .left {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                min-width: 0;
+                flex: 1;
+            }
+
+            .order-badge {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: rgba(56, 168, 232, 0.1);
+                color: #38a8e8;
+                font-size: 0.75rem;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .exercise-name {
+                font-weight: 600;
+                font-size: 0.938rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .target-muscle {
+                font-size: 0.75rem;
+                color: #8891a5;
+                margin-top: 0.25rem;
+                margin-left: 2rem;
+            }
+
+            .status-badge {
+                font-size: 0.75rem;
+                font-weight: 600;
+                padding: 0.125rem 0.5rem;
+                border-radius: 9999px;
+                flex-shrink: 0;
+            }
+
+            .status-badge.done {
+                color: #10b981;
+                background: rgba(16, 185, 129, 0.1);
+            }
+
+            .status-badge.queued-badge {
+                color: #f59e0b;
+                background: rgba(245, 158, 11, 0.1);
+            }
+
+            .status-badge.pending {
+                color: #8891a5;
+                background: rgba(136, 145, 165, 0.1);
+            }
+
+            /* Prescription */
+            .prescription {
+                font-size: 1.125rem;
+                font-weight: 700;
+                margin-top: 0.75rem;
+                letter-spacing: -0.025em;
+            }
+
+            /* Rest */
+            .rest {
+                font-size: 0.75rem;
+                color: #8891a5;
+                margin-top: 0.5rem;
+            }
+
+            /* Notes */
+            .coach-note {
+                background: rgba(30, 45, 74, 0.5);
+                border-radius: 0.375rem;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.813rem;
+                color: #8891a5;
+                font-style: italic;
+                margin-top: 0.5rem;
+            }
+
+            /* Log button */
+            .log-section {
+                border-top: 1px solid #1e2d4a;
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+            }
+
+            .log-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.375rem;
+                background: #38a8e8;
+                color: #0b1120;
+                font-size: 0.813rem;
+                font-weight: 600;
+                padding: 0.5rem 0.875rem;
+                border: none;
+                border-radius: 0.5rem;
+                cursor: pointer;
+            }
+
+            .log-btn:active {
+                background: #2b8ec5;
+            }
+            .log-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            /* Empty state */
+            .empty-state {
+                text-align: center;
+                padding: 4rem 1rem;
+            }
+
+            .empty-state p {
+                color: #8891a5;
+                font-size: 0.938rem;
+                margin-top: 0.75rem;
+            }
+
+            /* Loading */
+            .loading {
+                text-align: center;
+                padding: 4rem 1rem;
+                color: #8891a5;
+            }
+
+            /* Toast */
+            .toast {
+                position: fixed;
+                bottom: 5rem;
+                left: 1rem;
+                right: 1rem;
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                color: #6ee7b7;
+                font-size: 0.813rem;
+                padding: 0.625rem 1rem;
+                border-radius: 0.75rem;
+                text-align: center;
+                display: none;
+            }
+
+            /* Bottom nav placeholder */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(17, 27, 51, 0.95);
+                border-top: 1px solid #1e2d4a;
+                padding: 0.5rem 0;
+                display: flex;
+                justify-content: center;
+            }
+
+            .bottom-nav span {
+                font-size: 0.75rem;
+                color: #8891a5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="offline-banner">
+            <span class="offline-dot"></span>
+            Offline mode — logs will sync when you're back online
+        </div>
+
+        <div id="app">
+            <div class="loading">Loading cached workout...</div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+
+        <div class="bottom-nav">
+            <span>Flexius — Offline Mode</span>
+        </div>
+
+        <script>
+            const DB_NAME = "flexius-offline";
+            const DB_VERSION = 2;
+
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onupgradeneeded = () => {
+                        const db = request.result;
+                        if (!db.objectStoreNames.contains("pending-logs")) {
+                            db.createObjectStore("pending-logs", {
+                                keyPath: "id",
+                            });
+                        }
+                        if (!db.objectStoreNames.contains("plan-cache")) {
+                            db.createObjectStore("plan-cache");
+                        }
+                    };
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async function getCachedPlan() {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction("plan-cache", "readonly");
+                    const request = tx
+                        .objectStore("plan-cache")
+                        .get("today-plan");
+                    request.onsuccess = () => {
+                        const result = request.result;
+                        if (!result || !result.plan) {
+                            resolve(null);
+                            return;
+                        }
+                        const cachedDate = new Date(
+                            result.cachedAt,
+                        ).toLocaleDateString("en-CA", {
+                            timeZone: "Asia/Calcutta",
+                        });
+                        const today = new Date().toLocaleDateString("en-CA", {
+                            timeZone: "Asia/Calcutta",
+                        });
+                        resolve(cachedDate === today ? result.plan : null);
+                    };
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async function queueLog(log) {
+                const db = await openDB();
+                const id = crypto.randomUUID();
+                const entry = { ...log, id, queuedAt: Date.now() };
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction("pending-logs", "readwrite");
+                    tx.objectStore("pending-logs").add(entry);
+                    tx.oncomplete = () => resolve(id);
+                    tx.onerror = () => reject(tx.error);
+                });
+            }
+
+            function showToast(msg) {
+                const toast = document.getElementById("toast");
+                toast.textContent = msg;
+                toast.style.display = "block";
+                setTimeout(() => {
+                    toast.style.display = "none";
+                }, 3000);
+            }
+
+            function formatDate(dateStr) {
+                try {
+                    const d = new Date(dateStr + "T00:00:00");
+                    return d.toLocaleDateString("en-IN", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                    });
+                } catch {
+                    return dateStr;
+                }
+            }
+
+            function renderPlan(plan) {
+                const app = document.getElementById("app");
+                const completed = plan.exercises.filter(
+                    (e) => e.completed,
+                ).length;
+                const total = plan.exercises.length;
+                const pct =
+                    total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                let html = "";
+
+                // Header
+                html += '<div class="header">';
+                html += "<h1>" + (plan.title || "Today's Workout") + "</h1>";
+                html += '<div class="date">' + formatDate(plan.date) + "</div>";
+                if (plan.notes)
+                    html += '<div class="notes">' + plan.notes + "</div>";
+                html += "</div>";
+
+                // Progress
+                html += '<div class="progress-wrap">';
+                html +=
+                    '<div class="progress-text">' +
+                    completed +
+                    " of " +
+                    total +
+                    " completed</div>";
+                html +=
+                    '<div class="progress-bar"><div class="progress-fill" style="width:' +
+                    pct +
+                    '%"></div></div>';
+                html += "</div>";
+
+                // Exercises
+                plan.exercises.forEach((ex) => {
+                    const cardClass = ex.completed
+                        ? "exercise-card completed"
+                        : "exercise-card";
+                    html +=
+                        '<div class="' +
+                        cardClass +
+                        '" id="card-' +
+                        ex.id +
+                        '">';
+
+                    // Header row
+                    html += '<div class="card-header">';
+                    html += '<div class="left">';
+                    html +=
+                        '<span class="order-badge">' +
+                        (ex.orderIndex + 1) +
+                        "</span>";
+                    html +=
+                        '<span class="exercise-name">' + ex.name + "</span>";
+                    html += "</div>";
+
+                    if (ex.completed) {
+                        html += '<span class="status-badge done">Done</span>';
+                    } else {
+                        html +=
+                            '<span class="status-badge pending" id="badge-' +
+                            ex.id +
+                            '">Pending</span>';
+                    }
+                    html += "</div>";
+
+                    // Target muscle
+                    html +=
+                        '<div class="target-muscle">' +
+                        ex.targetMuscle +
+                        "</div>";
+
+                    // Prescription
+                    const parts = [];
+                    if (ex.sets) parts.push(ex.sets + " sets");
+                    if (ex.reps) parts.push(ex.reps + " reps");
+                    if (ex.targetWeight)
+                        parts.push(ex.targetWeight + " " + (ex.unit || "kg"));
+                    if (parts.length) {
+                        html +=
+                            '<div class="prescription">' +
+                            parts.join(" × ") +
+                            "</div>";
+                    }
+
+                    // Rest
+                    if (ex.restSeconds) {
+                        html +=
+                            '<div class="rest">Rest: ' +
+                            ex.restSeconds +
+                            "s</div>";
+                    }
+
+                    // Notes
+                    if (ex.notes) {
+                        html +=
+                            '<div class="coach-note">💡 ' + ex.notes + "</div>";
+                    }
+
+                    // Log button
+                    if (!ex.completed) {
+                        html += '<div class="log-section">';
+                        html +=
+                            '<button class="log-btn" id="log-' +
+                            ex.id +
+                            '" onclick="handleLog(' +
+                            ex.id +
+                            ", " +
+                            ex.exerciseId +
+                            ", '" +
+                            ex.exerciseSource +
+                            "', " +
+                            (ex.sets || 1) +
+                            ", " +
+                            (ex.reps || 0) +
+                            ", " +
+                            (ex.targetWeight || "null") +
+                            ", '" +
+                            (ex.unit || "kg") +
+                            "', " +
+                            (ex.notes
+                                ? "'" + ex.notes.replace(/'/g, "\\'") + "'"
+                                : "null") +
+                            ')">';
+                        html += "💪 Log</button>";
+                        html += "</div>";
+                    }
+
+                    html += "</div>";
+                });
+
+                app.innerHTML = html;
+            }
+
+            async function handleLog(
+                planExId,
+                exerciseId,
+                source,
+                sets,
+                reps,
+                weight,
+                unit,
+                notes,
+            ) {
+                const btn = document.getElementById("log-" + planExId);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = "Queuing...";
+                }
+
+                try {
+                    const today = new Date().toLocaleDateString("en-CA", {
+                        timeZone: "Asia/Calcutta",
+                    });
+                    await queueLog({
+                        exerciseId: exerciseId,
+                        exerciseSource: source,
+                        performedAt: today,
+                        sets: sets,
+                        reps: reps,
+                        weight: weight,
+                        unit: unit,
+                        durationMinutes: null,
+                        notes: notes,
+                    });
+
+                    // Update UI
+                    const card = document.getElementById("card-" + planExId);
+                    if (card) card.className = "exercise-card queued";
+
+                    const badge = document.getElementById("badge-" + planExId);
+                    if (badge) {
+                        badge.textContent = "Queued";
+                        badge.className = "status-badge queued-badge";
+                    }
+
+                    if (btn) {
+                        btn.remove();
+                    }
+
+                    showToast("Workout queued — will sync when online");
+                } catch (err) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = "💪 Log";
+                    }
+                    showToast("Failed to queue — try again");
+                }
+            }
+
+            // Auto-reload when back online
+            window.addEventListener("online", () => {
+                window.location.href = "/workout/today";
+            });
+
+            // Init
+            (async () => {
+                try {
+                    const plan = await getCachedPlan();
+                    if (plan && plan.exercises && plan.exercises.length > 0) {
+                        renderPlan(plan);
+                    } else {
+                        document.getElementById("app").innerHTML =
+                            '<div class="empty-state">' +
+                            '<div style="font-size:2.5rem">🏋️</div>' +
+                            "<p>No cached workout plan for today.<br>Connect to the internet to load your plan.</p>" +
+                            "</div>";
+                    }
+                } catch (err) {
+                    document.getElementById("app").innerHTML =
+                        '<div class="empty-state">' +
+                        "<p>Could not load cached plan.</p>" +
+                        "</div>";
+                }
+            })();
+        </script>
+    </body>
+</html>
