@@ -6,6 +6,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const LoginForm: React.FC = () => {
@@ -47,11 +48,13 @@ const LoginForm: React.FC = () => {
       >
         {/* Logo + Heading */}
         <div className="flex flex-col items-center gap-3 text-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-header-cropped.png"
+          <Image
+            src="/logo-144.webp"
             alt="Flexius"
+            width={64}
+            height={64}
             className="h-16 w-16 object-contain"
+            priority
           />
           <div>
             <h1 className="font-heading text-2xl font-bold text-foreground">

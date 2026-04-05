@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -36,11 +37,13 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       {/* Top Header */}
       <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-border bg-card/95 px-4 py-2 backdrop-blur supports-backdrop-filter:bg-card/80">
         <Link href="/" className="flex items-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-header-cropped.png"
+          <Image
+            src="/logo-144.webp"
             alt="Flexius"
+            width={48}
+            height={48}
             className="h-12 w-12 object-contain"
+            priority
           />
           <span className="font-heading text-lg font-bold text-foreground">
             Flexius

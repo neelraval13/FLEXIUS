@@ -4,6 +4,7 @@ import { Inter, Outfit } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import SWRegister from "@/components/sw-register";
+import InstallPrompt from "@/components/install-prompt";
 import "./globals.css";
 
 const inter = Inter({
@@ -52,13 +53,18 @@ const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       suppressHydrationWarning
     >
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/icons/apple-touch-icon.png"
+        />
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider>
           <SessionProvider>
             {children}
             <SWRegister />
+            <InstallPrompt />
           </SessionProvider>
         </ThemeProvider>
       </body>

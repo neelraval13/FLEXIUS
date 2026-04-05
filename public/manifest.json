@@ -7,6 +7,7 @@
   "orientation": "portrait",
   "background_color": "#0B1120",
   "theme_color": "#1B6AC0",
+  "categories": ["fitness", "health"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -31,6 +32,29 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Workout",
+      "short_name": "Log",
+      "url": "/log",
+      "description": "Quickly log a workout",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Today's Plan",
+      "short_name": "Workout",
+      "url": "/workout/today",
+      "description": "View today's workout plan",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI Coach",
+      "short_name": "Coach",
+      "url": "/chat",
+      "description": "Chat with your AI fitness coach",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
