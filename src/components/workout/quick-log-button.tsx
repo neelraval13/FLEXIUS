@@ -9,6 +9,7 @@ import { Check, Loader2, Dumbbell, Pencil, CloudOff } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { quickLogFromPlan } from "@/app/actions/workout-plan-actions";
 import { queueLog } from "@/lib/offline-queue";
+import { useRestTimer } from "./rest-timer-context";
 import type { PlanExerciseDetail } from "@/types/workout-plan";
 
 interface QuickLogButtonProps {
@@ -19,6 +20,13 @@ const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
   const [isPending, startTransition] = useTransition();
   const [showConfirm, setShowConfirm] = useState(false);
   const [wasQueued, setWasQueued] = useState(false);
+  const { startTimer } = useRestTimer();
+
+  const triggerRestTimer = () => {
+    if (exercise.restSeconds && exercise.restSeconds > 0) {
+      startTimer(exercise.restSeconds, exercise.name);
+    }
+  };
 
   if (wasQueued) {
     return (
@@ -43,6 +51,7 @@ const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
       try {
         await quickLogFromPlan(exercise.id);
         setShowConfirm(false);
+        triggerRestTimer();
       } catch {
         // Offline — queue the log
         try {
@@ -65,6 +74,7 @@ const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
           setWasQueued(true);
           setShowConfirm(false);
           window.dispatchEvent(new Event("workout-queued"));
+          triggerRestTimer();
         } catch (queueError) {
           console.error("Failed to queue workout:", queueError);
         }

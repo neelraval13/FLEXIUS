@@ -5,9 +5,8 @@ import { auth } from "@/lib/auth";
 import { getTodayPlan } from "@/db/queries/workout-plans";
 import { getAllExercises, getAllCardioStretching } from "@/db/queries";
 import WorkoutEmptyState from "@/components/workout/empty-state";
-import TodayPlan from "@/components/workout/today-plan";
+import WorkoutWithTimer from "@/components/workout/workout-with-timer";
 import PlanCacher from "@/components/workout/plan-cacher";
-import PlanChatBubble from "@/components/workout/plan-chat-bubble";
 import { buildPlanContext } from "@/lib/plan-context";
 import type { TodayPlanData, PlanExerciseDetail } from "@/types/workout-plan";
 import type { Metadata } from "next";
@@ -82,8 +81,7 @@ const WorkoutTodayPage: React.FC = async () => {
   return (
     <>
       <PlanCacher plan={todayPlanData} />
-      <TodayPlan plan={todayPlanData} />
-      <PlanChatBubble planContext={planContext} />
+      <WorkoutWithTimer plan={todayPlanData} planContext={planContext} />
     </>
   );
 };

@@ -62,7 +62,10 @@ const PlanExerciseCard: React.FC<PlanExerciseCardProps> = ({ exercise }) => {
         {/* Rest + badges row */}
         {exercise.restSeconds && (
           <div className="flex flex-wrap gap-2">
-            <RestBadge seconds={exercise.restSeconds} />
+            <RestBadge
+              seconds={exercise.restSeconds}
+              exerciseName={exercise.name}
+            />
           </div>
         )}
 
