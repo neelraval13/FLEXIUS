@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
+import NotificationBell from "@/components/notification-bell";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -60,6 +61,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <Moon className="absolute left-2 top-2 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </button>
+          <NotificationBell />
           <Link
             href="/profile"
             className={`rounded-lg p-2 transition-colors ${
