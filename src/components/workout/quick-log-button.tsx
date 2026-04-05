@@ -5,9 +5,10 @@
 import type React from "react";
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Check, Loader2, Dumbbell, Pencil } from "lucide-react";
+import { Check, Loader2, Dumbbell, Pencil, CloudOff } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { quickLogFromPlan } from "@/app/actions/workout-plan-actions";
+import { queueLog } from "@/lib/offline-queue";
 import type { PlanExerciseDetail } from "@/types/workout-plan";
 
 interface QuickLogButtonProps {
@@ -17,6 +18,16 @@ interface QuickLogButtonProps {
 const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
   const [isPending, startTransition] = useTransition();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [wasQueued, setWasQueued] = useState(false);
+
+  if (wasQueued) {
+    return (
+      <div className="flex items-center gap-1.5 text-sm text-amber-500">
+        <CloudOff className="h-4 w-4" />
+        <span className="font-medium">Queued</span>
+      </div>
+    );
+  }
 
   if (exercise.completed) {
     return (
@@ -29,8 +40,35 @@ const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
 
   const handleConfirm = () => {
     startTransition(async () => {
-      await quickLogFromPlan(exercise.id);
-      setShowConfirm(false);
+      try {
+        await quickLogFromPlan(exercise.id);
+        setShowConfirm(false);
+      } catch {
+        // Offline — queue the log
+        try {
+          const today = new Date().toLocaleDateString("en-CA", {
+            timeZone: "Asia/Calcutta",
+          });
+
+          await queueLog({
+            exerciseId: exercise.exerciseId,
+            exerciseSource: exercise.exerciseSource,
+            performedAt: today,
+            sets: exercise.sets ?? 1,
+            reps: exercise.reps ?? 0,
+            weight: exercise.targetWeight,
+            unit: (exercise.unit as "kg" | "lbs") || "kg",
+            durationMinutes: null,
+            notes: exercise.notes,
+          });
+
+          setWasQueued(true);
+          setShowConfirm(false);
+          window.dispatchEvent(new Event("workout-queued"));
+        } catch (queueError) {
+          console.error("Failed to queue workout:", queueError);
+        }
+      }
     });
   };
 

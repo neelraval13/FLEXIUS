@@ -2,11 +2,18 @@
 
 import type React from "react";
 import { useState, useTransition, useCallback } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, CloudOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { createWorkoutLog, createBatchWorkoutLogs } from "@/app/actions";
+import { queueLog } from "@/lib/offline-queue";
 import type { SelectableExercise, SetEntry, ExerciseType } from "@/types/logs";
 import { getExerciseType } from "@/types/logs";
 import ExerciseSelector from "@/components/log/exercise-selector";
@@ -37,6 +44,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
 }) => {
   const [isPending, startTransition] = useTransition();
   const [success, setSuccess] = useState<string | null>(null);
+  const [queued, setQueued] = useState(false);
 
   // Exercise selection
   const [selectedExercise, setSelectedExercise] =
@@ -132,6 +140,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
     setDuration(30);
     setSetEntries([getDefaultSetEntry()]);
     setSuccess(null);
+    setQueued(false);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -182,13 +191,79 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
           });
         }
         setSuccess(selectedExercise.name);
-      } catch (error) {
-        console.error("Failed to log workout:", error);
+      } catch {
+        // Offline or server error — queue for later sync
+        try {
+          if (mode === "per-set" && showPerSetOption) {
+            for (const entry of setEntries) {
+              await queueLog({
+                exerciseId: selectedExercise.id,
+                exerciseSource: selectedExercise.source,
+                performedAt: date,
+                sets: 1,
+                reps: entry.reps,
+                weight:
+                  exerciseType === "strength" || exerciseType === "core"
+                    ? entry.weight || null
+                    : null,
+                unit:
+                  exerciseType === "strength" || exerciseType === "core"
+                    ? unit
+                    : null,
+                durationMinutes: null,
+                notes: notes || null,
+              });
+            }
+          } else {
+            const isStrengthLike =
+              exerciseType === "strength" || exerciseType === "core";
+            const isDurationBased =
+              exerciseType === "cardio" || exerciseType === "stretching";
+
+            await queueLog({
+              exerciseId: selectedExercise.id,
+              exerciseSource: selectedExercise.source,
+              performedAt: date,
+              sets: isStrengthLike ? sets : 0,
+              reps: isStrengthLike ? reps : 0,
+              weight: isStrengthLike && weight !== "" ? weight : null,
+              unit: isStrengthLike ? unit : "kg",
+              durationMinutes:
+                isDurationBased && duration !== "" ? duration : null,
+              notes: notes || null,
+            });
+          }
+
+          setQueued(true);
+          setSuccess(selectedExercise.name);
+          window.dispatchEvent(new Event("workout-queued"));
+        } catch (queueError) {
+          console.error("Failed to queue workout:", queueError);
+        }
       }
     });
   };
 
   if (success) {
+    if (queued) {
+      return (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="pt-6 text-center">
+            <CloudOff className="mx-auto mb-3 h-12 w-12 text-amber-500" />
+            <h3 className="text-lg font-semibold">Workout Queued</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {success} will be synced when you&apos;re back online.
+            </p>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2">
+            <Button variant="outline" className="w-full" onClick={resetForm}>
+              Log Another
+            </Button>
+          </CardFooter>
+        </Card>
+      );
+    }
+
     return (
       <SuccessMessage
         exerciseName={success}
