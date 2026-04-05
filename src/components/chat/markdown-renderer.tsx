@@ -9,7 +9,7 @@ interface MarkdownRendererProps {
 
 const components: Components = {
   h1: ({ children }) => (
-    <h1 className="mb-3 mt-5 border-b border-zinc-700 pb-1 text-lg font-bold first:mt-0">
+    <h1 className="border-border mb-3 mt-5 border-b pb-1 text-lg font-bold first:mt-0">
       {children}
     </h1>
   ),
@@ -32,9 +32,11 @@ const components: Components = {
   ),
   li: ({ children }) => <li className="text-sm leading-relaxed">{children}</li>,
   strong: ({ children }) => (
-    <strong className="text-white font-semibold">{children}</strong>
+    <strong className="text-foreground font-semibold">{children}</strong>
   ),
-  em: ({ children }) => <em className="text-zinc-400 italic">{children}</em>,
+  em: ({ children }) => (
+    <em className="text-muted-foreground italic">{children}</em>
+  ),
   code: ({ children, className }) => {
     const isBlock = className?.includes("language-");
     if (isBlock) {
@@ -47,7 +49,7 @@ const components: Components = {
       );
     }
     return (
-      <code className="bg-zinc-800 rounded px-1.5 py-0.5 text-xs text-zinc-300">
+      <code className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
         {children}
       </code>
     );
@@ -59,22 +61,20 @@ const components: Components = {
     </blockquote>
   ),
   table: ({ children }) => (
-    <div className="mb-2.5 overflow-x-auto rounded-lg border border-zinc-700 last:mb-0">
+    <div className="border-border mb-2.5 overflow-x-auto rounded-lg border last:mb-0">
       <table className="min-w-full text-sm">{children}</table>
     </div>
   ),
   thead: ({ children }) => (
-    <thead className="border-zinc-700 border-b bg-zinc-800/50">
-      {children}
-    </thead>
+    <thead className="border-border bg-muted/50 border-b">{children}</thead>
   ),
   th: ({ children }) => (
     <th className="px-3 py-1.5 text-left text-xs font-semibold">{children}</th>
   ),
   td: ({ children }) => (
-    <td className="border-zinc-700 border-t px-3 py-1.5 text-xs">{children}</td>
+    <td className="border-border border-t px-3 py-1.5 text-xs">{children}</td>
   ),
-  hr: () => <hr className="border-zinc-700 my-4" />,
+  hr: () => <hr className="border-border my-4" />,
   a: ({ href, children }) => {
     const isInternal = href?.startsWith("/");
     return (

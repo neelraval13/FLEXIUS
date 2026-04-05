@@ -71,8 +71,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const canSend = (value.trim().length > 0 || !!imageUrl) && !isLoading;
 
   return (
-    <div className="border-border bg-background border-t p-3">
-      <div className="bg-muted flex items-end gap-2 rounded-2xl px-3 py-2">
+    <div className="border-t border-border bg-background p-3">
+      <div className="flex items-end gap-2 rounded-2xl bg-muted px-3 py-2">
         {imageUrl && (
           <div className="mb-1 w-full">
             <ImagePreview imageUrl={imageUrl} onRemove={onImageRemove} />
@@ -99,9 +99,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
           value={value}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
-          placeholder="Ask your AI coach..."
+          placeholder="Ask your Flexius coach..."
           rows={1}
-          className="max-h-40 min-h-9 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm text-white placeholder-zinc-500 outline-none"
+          className="max-h-40 min-h-9 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm text-foreground placeholder-muted-foreground outline-none"
         />
         <Button
           size="icon"
@@ -112,7 +112,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           <ArrowUp className="size-4" />
         </Button>
       </div>
-      <p className="text-muted-foreground mt-1.5 text-center text-[10px]">
+      <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
         AI can make mistakes. Verify important fitness advice.
       </p>
     </div>

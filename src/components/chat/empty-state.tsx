@@ -20,7 +20,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggestionClick }) => {
         <Bot className="text-primary size-8" />
       </div>
       <div className="space-y-2 text-center">
-        <h2 className="text-xl font-semibold">AI Coach</h2>
+        <h2 className="font-heading text-xl font-semibold">Flexius AI Coach</h2>
         <p className="text-muted-foreground text-sm">
           Your personal fitness assistant. Ask me anything about workouts,
           nutrition, or form — or let me generate a plan.

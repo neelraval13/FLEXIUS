@@ -21,7 +21,9 @@ const PlanChatBubble: React.FC<PlanChatBubbleProps> = ({ planContext }) => {
         <div className="fixed bottom-36 right-4 z-60 flex h-80 w-72 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 sm:h-96 sm:w-80">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
-            <h2 className="text-sm font-semibold">AI Coach</h2>
+            <h2 className="font-heading text-sm font-semibold">
+              Flexius Coach
+            </h2>
             <Button
               variant="ghost"
               size="icon"

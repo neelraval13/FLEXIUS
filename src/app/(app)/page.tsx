@@ -78,7 +78,7 @@ const DashboardPage = async () => {
     <div className="space-y-5 p-4 pb-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">
+          <h1 className="font-heading text-xl font-bold">
             {greeting}, {userName}
           </h1>
           <p className="text-muted-foreground text-sm">

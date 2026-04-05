@@ -1,12 +1,12 @@
 {
-  "name": "Fitness Coach",
-  "short_name": "FitCoach",
-  "description": "Personal AI-powered fitness tracker and coach",
+  "name": "Flexius — AI Fitness Tracker",
+  "short_name": "Flexius",
+  "description": "Your AI-powered personal fitness tracker and coach",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#0B1120",
+  "theme_color": "#1B6AC0",
   "icons": [
     {
       "src": "/icons/icon-192.png",

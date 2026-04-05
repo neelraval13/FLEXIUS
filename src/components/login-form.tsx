@@ -16,8 +16,7 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError("");
     setLoading(true);
 
@@ -38,18 +37,34 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-zinc-950 px-4">
+    <div className="flex min-h-svh items-center justify-center bg-background px-4">
       <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSubmit();
+        }}
+        className="w-full max-w-sm space-y-6 rounded-2xl border border-border bg-card p-6"
       >
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Fitness Coach</h1>
-          <p className="mt-1 text-sm text-zinc-400">Sign in to continue</p>
+        {/* Logo + Heading */}
+        <div className="flex flex-col items-center gap-3 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-header-cropped.png"
+            alt="Flexius"
+            className="h-16 w-16 object-contain"
+          />
+          <div>
+            <h1 className="font-heading text-2xl font-bold text-foreground">
+              Flexius
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Sign in to continue
+            </p>
+          </div>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-500/10 px-3 py-2 text-center text-sm text-red-400">
+          <div className="rounded-lg bg-destructive/10 px-3 py-2 text-center text-sm text-destructive">
             {error}
           </div>
         )}
@@ -58,7 +73,7 @@ const LoginForm: React.FC = () => {
           <div>
             <label
               htmlFor="username"
-              className="mb-1.5 block text-sm font-medium text-zinc-300"
+              className="mb-1.5 block text-sm font-medium text-foreground"
             >
               Username
             </label>
@@ -68,15 +83,16 @@ const LoginForm: React.FC = () => {
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-input bg-muted px-3 py-2 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Enter username"
+              autoComplete="username"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="mb-1.5 block text-sm font-medium text-zinc-300"
+              className="mb-1.5 block text-sm font-medium text-foreground"
             >
               Password
             </label>
@@ -87,13 +103,14 @@ const LoginForm: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 pr-10 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-input bg-muted px-3 py-2 pr-10 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="Enter password"
+                autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 transition hover:text-zinc-200"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -105,14 +122,14 @@ const LoginForm: React.FC = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50"
+          className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
         >
           {loading ? "Signing in…" : "Sign In"}
         </button>
 
-        <p className="text-center text-sm text-zinc-500">
+        <p className="text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-blue-500 hover:text-blue-400">
+          <Link href="/register" className="text-primary hover:text-primary/80">
             Create one
           </Link>
         </p>

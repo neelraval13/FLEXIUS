@@ -110,7 +110,7 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
       >
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-2 px-2 text-center text-muted-foreground">
-            <p className="text-xs">Ask your AI coach anything</p>
+            <p className="text-xs">Ask your Flexius coach anything</p>
             <div className="flex flex-wrap justify-center gap-1">
               {[
                 "Log my bench press",

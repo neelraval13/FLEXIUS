@@ -12,9 +12,11 @@ const WorkoutEmptyState: React.FC = () => {
         <Dumbbell className="h-10 w-10 text-muted-foreground" />
       </div>
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold">No Plan for Today</h2>
+        <h2 className="font-heading text-lg font-semibold">
+          No Plan for Today
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Chat with your AI Coach to build today&apos;s workout plan.
+          Chat with your Flexius AI Coach to build today&apos;s workout plan.
         </p>
       </div>
       <Link

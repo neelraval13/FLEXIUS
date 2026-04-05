@@ -33,7 +33,9 @@ const PlanHeader: React.FC<PlanHeaderProps> = ({
     <div className="space-y-3">
       <div>
         <p className="text-sm text-muted-foreground">{formattedDate}</p>
-        <h1 className="text-xl font-bold">{title ?? "Today's Workout"}</h1>
+        <h1 className="font-heading text-xl font-bold">
+          {title ?? "Today's Workout"}
+        </h1>
         {notes && <p className="mt-1 text-sm text-muted-foreground">{notes}</p>}
       </div>
       <PlanProgress completed={completedCount} total={totalCount} />

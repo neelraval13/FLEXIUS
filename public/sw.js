@@ -1,5 +1,5 @@
 // public/sw.js
-const CACHE_NAME = "fitcoach-v2";
+const CACHE_NAME = "flexius-v1";
 
 const PRECACHE_URLS = ["/login"];
 

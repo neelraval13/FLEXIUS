@@ -135,7 +135,7 @@ export const buildSystemPrompt = async (user: UserContext): Promise<string> => {
     cardioStretching,
     todayPlan,
     profile,
-    favorites, // ← add
+    favorites,
   ] = await Promise.all([
     getAllEquipment(),
     getAllMuscleGroups(),
@@ -143,7 +143,7 @@ export const buildSystemPrompt = async (user: UserContext): Promise<string> => {
     getAllCardioStretching(),
     getTodayPlan(user.userId),
     getProfile(user.userId),
-    getUserFavorites(user.userId), // ← add
+    getUserFavorites(user.userId),
   ]);
 
   // Build favorites section
@@ -169,7 +169,7 @@ export const buildSystemPrompt = async (user: UserContext): Promise<string> => {
 
   const name = profile?.name ?? user.name;
 
-  return `You are ${name}'s personal AI fitness coach and workout assistant. You have complete access to their gym's exercise database, equipment inventory, and workout history (via tools).
+  return `You are Flexius — ${name}'s personal AI fitness coach and workout assistant. Flexius is an AI-powered fitness tracker app. You are the intelligence behind it. Be proud of that identity but don't be preachy about it — just be a great coach.
 
 ## Today's Date
 ${getCurrentDate()}
