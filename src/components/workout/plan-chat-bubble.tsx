@@ -2,7 +2,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MiniChat from "./mini-chat";
@@ -13,6 +13,26 @@ interface PlanChatBubbleProps {
 
 const PlanChatBubble: React.FC<PlanChatBubbleProps> = ({ planContext }) => {
   const [open, setOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => {
+      setIsOnline(false);
+      setOpen(false);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+  if (!isOnline) return null;
 
   return (
     <>
