@@ -52,6 +52,40 @@ const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
         await quickLogFromPlan(exercise.id);
         setShowConfirm(false);
         triggerRestTimer();
+
+        // Check for PR
+        try {
+          const prRes = await fetch("/api/pr", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              exerciseId: exercise.exerciseId,
+              source: exercise.exerciseSource,
+              weight: exercise.targetWeight,
+              reps: exercise.reps,
+              durationMinutes: null,
+            }),
+          });
+
+          if (prRes.ok) {
+            const pr = await prRes.json();
+            if (pr.isPR) {
+              window.dispatchEvent(
+                new CustomEvent("flexius-pr", {
+                  detail: {
+                    type: pr.type,
+                    exerciseName: exercise.name,
+                    previous: pr.previous,
+                    current: pr.current,
+                    unit: exercise.unit || "kg",
+                  },
+                }),
+              );
+            }
+          }
+        } catch {
+          // PR check not critical
+        }
       } catch {
         // Offline — queue the log
         try {

@@ -9,6 +9,7 @@ import VideoEmbed from "@/components/exercises/video-embed";
 import HistoryChart from "@/components/exercises/history-chart";
 import type { WorkoutLogEntry } from "@/components/exercises/history-chart";
 import HistoryList from "@/components/exercises/history-list";
+import PRCard from "@/components/exercises/pr-card";
 
 export interface ExerciseDetailData {
   id: number;
@@ -56,6 +57,8 @@ const ExerciseDetail: React.FC<ExerciseDetailProps> = ({ exercise, logs }) => {
       />
 
       <AlternativesSection alternatives={exercise.alternatives} />
+
+      <PRCard logs={logs} isCardio={isCardio} />
 
       <HistoryChart logs={logs} isCardio={isCardio} />
 

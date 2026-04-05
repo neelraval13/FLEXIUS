@@ -22,6 +22,7 @@ import SummaryFields from "@/components/log/summary-fields";
 import PerSetFields from "@/components/log/per-set-fields";
 import DateNotesFields from "@/components/log/date-notes-fields";
 import SuccessMessage from "@/components/log/success-message";
+import PRCelebration from "@/components/pr-celebration";
 
 interface WorkoutLogFormProps {
   exercises: SelectableExercise[];
@@ -45,6 +46,13 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
   const [isPending, startTransition] = useTransition();
   const [success, setSuccess] = useState<string | null>(null);
   const [queued, setQueued] = useState(false);
+  const [prData, setPrData] = useState<{
+    type: "weight" | "reps" | "duration";
+    exerciseName: string;
+    previous: number | null;
+    current: number;
+    unit: string;
+  } | null>(null);
 
   // Exercise selection
   const [selectedExercise, setSelectedExercise] =
@@ -141,6 +149,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
     setSetEntries([getDefaultSetEntry()]);
     setSuccess(null);
     setQueued(false);
+    setPrData(null);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -191,6 +200,47 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
           });
         }
         setSuccess(selectedExercise.name);
+
+        // Check for PR
+        try {
+          const maxWeight =
+            mode === "per-set" && showPerSetOption
+              ? Math.max(...setEntries.map((e) => e.weight ?? 0))
+              : typeof weight === "number"
+                ? weight
+                : null;
+          const maxDuration = typeof duration === "number" ? duration : null;
+
+          const prRes = await fetch("/api/pr", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              exerciseId: selectedExercise.id,
+              source: selectedExercise.source,
+              weight: maxWeight,
+              reps:
+                mode === "per-set"
+                  ? Math.max(...setEntries.map((e) => e.reps))
+                  : reps,
+              durationMinutes: maxDuration,
+            }),
+          });
+
+          if (prRes.ok) {
+            const pr = await prRes.json();
+            if (pr.isPR) {
+              setPrData({
+                type: pr.type,
+                exerciseName: selectedExercise.name,
+                previous: pr.previous,
+                current: pr.current,
+                unit: unit,
+              });
+            }
+          }
+        } catch {
+          // PR check failed — not critical
+        }
       } catch {
         // Offline or server error — queue for later sync
         try {
@@ -265,11 +315,23 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
     }
 
     return (
-      <SuccessMessage
-        exerciseName={success}
-        onLogAnother={resetForm}
-        returnTo={returnTo}
-      />
+      <>
+        {prData && (
+          <PRCelebration
+            type={prData.type}
+            exerciseName={prData.exerciseName}
+            previous={prData.previous}
+            current={prData.current}
+            unit={prData.unit}
+            onDismiss={() => setPrData(null)}
+          />
+        )}
+        <SuccessMessage
+          exerciseName={success}
+          onLogAnother={resetForm}
+          returnTo={returnTo}
+        />
+      </>
     );
   }
 
