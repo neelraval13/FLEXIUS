@@ -1,8 +1,9 @@
 // src/app/api/log/route.ts
+import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { workoutLogs } from "@/db/schema";
+import { workoutLogs, workoutPlans, workoutPlanExercises } from "@/db/schema";
 
 interface LogPayload {
   exerciseId: number;
@@ -15,6 +16,52 @@ interface LogPayload {
   durationMinutes: number | null;
   notes: string | null;
 }
+
+const autoCompletePlanExercise = async (
+  userId: string,
+  exerciseId: number,
+  exerciseSource: string,
+  performedAt: string,
+) => {
+  try {
+    // Find the plan for this date
+    const plan = await db
+      .select({ id: workoutPlans.id })
+      .from(workoutPlans)
+      .where(
+        and(
+          eq(workoutPlans.userId, userId),
+          eq(workoutPlans.date, performedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!plan[0]) return;
+
+    // Find a matching uncompleted plan exercise
+    const match = await db
+      .select({ id: workoutPlanExercises.id })
+      .from(workoutPlanExercises)
+      .where(
+        and(
+          eq(workoutPlanExercises.planId, plan[0].id),
+          eq(workoutPlanExercises.exerciseId, exerciseId),
+          eq(workoutPlanExercises.exerciseSource, exerciseSource),
+          eq(workoutPlanExercises.completed, 0),
+        ),
+      )
+      .limit(1);
+
+    if (!match[0]) return;
+
+    await db
+      .update(workoutPlanExercises)
+      .set({ completed: 1 })
+      .where(eq(workoutPlanExercises.id, match[0].id));
+  } catch (err) {
+    console.error("Auto-complete plan exercise failed:", err);
+  }
+};
 
 export const POST = async (req: Request): Promise<Response> => {
   const session = await auth();
@@ -45,6 +92,15 @@ export const POST = async (req: Request): Promise<Response> => {
         durationMinutes: log.durationMinutes,
         notes: log.notes ? `${log.notes} (synced offline)` : "(synced offline)",
       });
+
+      // Mark the matching plan exercise as completed
+      await autoCompletePlanExercise(
+        userId,
+        log.exerciseId,
+        log.exerciseSource,
+        log.performedAt,
+      );
+
       synced++;
     }
 
