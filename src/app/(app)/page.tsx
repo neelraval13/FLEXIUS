@@ -10,11 +10,13 @@ import {
   getAllExercises,
   getAllCardioStretching,
 } from "@/db/queries";
+import { getWeeklyMuscleHeatmap } from "@/db/queries/muscle-heatmap";
 import WeeklyStats from "@/components/dashboard/weekly-stats";
 import StreakBadge from "@/components/dashboard/streak-badge";
 import TodayPlanCard from "@/components/dashboard/today-plan-card";
 import RecentActivity from "@/components/dashboard/recent-activity";
 import QuickActions from "@/components/dashboard/quick-actions";
+import MuscleHeatmap from "@/components/dashboard/muscle-heatmap";
 import type { RecentLogEntry } from "@/types/dashboard";
 
 export const metadata: Metadata = {
@@ -28,15 +30,23 @@ const DashboardPage = async () => {
   const userId = session.user.id;
   const userName = session.user.name ?? "there";
 
-  const [stats, streak, recentLogs, todayPlan, allExercises, allCardio] =
-    await Promise.all([
-      getWeeklyStats(userId),
-      getWorkoutStreak(userId),
-      getRecentLogs(userId, 6),
-      getTodayPlan(userId),
-      getAllExercises(),
-      getAllCardioStretching(),
-    ]);
+  const [
+    stats,
+    streak,
+    recentLogs,
+    todayPlan,
+    allExercises,
+    allCardio,
+    muscleData,
+  ] = await Promise.all([
+    getWeeklyStats(userId),
+    getWorkoutStreak(userId),
+    getRecentLogs(userId, 6),
+    getTodayPlan(userId),
+    getAllExercises(),
+    getAllCardioStretching(),
+    getWeeklyMuscleHeatmap(userId),
+  ]);
 
   const nameMap = new Map<string, string>();
   for (const e of allExercises) {
@@ -111,6 +121,8 @@ const DashboardPage = async () => {
         </h2>
         <WeeklyStats stats={stats} />
       </div>
+
+      <MuscleHeatmap data={muscleData} />
 
       <RecentActivity logs={recentWithNames} />
     </div>
