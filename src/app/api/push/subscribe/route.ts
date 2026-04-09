@@ -1,5 +1,5 @@
 // src/app/api/push/subscribe/route.ts
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { pushSubscriptions } from "@/db/schema";
@@ -60,7 +60,12 @@ export const DELETE = async (req: Request): Promise<Response> => {
 
     await db
       .delete(pushSubscriptions)
-      .where(eq(pushSubscriptions.endpoint, endpoint));
+      .where(
+        and(
+          eq(pushSubscriptions.endpoint, endpoint),
+          eq(pushSubscriptions.userId, session.user.id),
+        ),
+      );
 
     return Response.json({ success: true });
   } catch (error) {
