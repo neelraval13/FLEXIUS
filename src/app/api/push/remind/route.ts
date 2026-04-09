@@ -1,7 +1,7 @@
 // src/app/api/push/remind/route.ts
 // Called by Vercel Cron daily at 6:00 PM IST (12:30 UTC)
 
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { users, pushSubscriptions, workoutPlans } from "@/db/schema";
 import { getWorkoutStreak } from "@/db/queries/dashboard";
@@ -35,7 +35,9 @@ export const GET = async (req: Request): Promise<Response> => {
       const todayPlan = await db
         .select({ id: workoutPlans.id, title: workoutPlans.title })
         .from(workoutPlans)
-        .where(eq(workoutPlans.date, today))
+        .where(
+          and(eq(workoutPlans.userId, userId), eq(workoutPlans.date, today)),
+        )
         .limit(1);
 
       // Get user's name
