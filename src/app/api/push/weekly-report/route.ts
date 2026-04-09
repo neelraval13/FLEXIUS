@@ -15,7 +15,7 @@ const formatVolume = (vol: number): string => {
 
 export const GET = async (req: Request): Promise<Response> => {
   const authHeader = req.headers.get("authorization");
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

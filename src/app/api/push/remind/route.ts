@@ -12,7 +12,7 @@ const CRON_SECRET = process.env.CRON_SECRET;
 export const GET = async (req: Request): Promise<Response> => {
   // Verify cron secret to prevent unauthorized calls
   const authHeader = req.headers.get("authorization");
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
