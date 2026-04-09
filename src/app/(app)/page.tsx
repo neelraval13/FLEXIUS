@@ -43,8 +43,8 @@ const DashboardPage = async () => {
     getWorkoutStreak(userId),
     getRecentLogs(userId, 6),
     getTodayPlan(userId),
-    getAllExercises(),
-    getAllCardioStretching(),
+    getAllExercises(userId),
+    getAllCardioStretching(userId),
     getWeeklyMuscleHeatmap(userId),
   ]);
 

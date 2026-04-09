@@ -1,9 +1,16 @@
-import { eq, like } from "drizzle-orm";
+import { eq, like, or, isNull, and } from "drizzle-orm";
 import { db } from "@/db";
 import { cardioStretching } from "@/db/schema";
 
-export async function getAllCardioStretching() {
-  return db.select().from(cardioStretching).all();
+/** Return shared (seed) entries + this user's private entries */
+export async function getAllCardioStretching(userId: string) {
+  return db
+    .select()
+    .from(cardioStretching)
+    .where(
+      or(isNull(cardioStretching.userId), eq(cardioStretching.userId, userId)),
+    )
+    .all();
 }
 
 export async function getCardioStretchingById(id: number) {
@@ -15,26 +22,54 @@ export async function getCardioStretchingById(id: number) {
   return rows[0] ?? null;
 }
 
-export async function getCardioStretchingByCategory(category: string) {
+export async function getCardioStretchingByCategory(
+  category: string,
+  userId: string,
+) {
   return db
     .select()
     .from(cardioStretching)
-    .where(eq(cardioStretching.category, category))
+    .where(
+      and(
+        eq(cardioStretching.category, category),
+        or(
+          isNull(cardioStretching.userId),
+          eq(cardioStretching.userId, userId),
+        ),
+      ),
+    )
     .all();
 }
 
-export async function getCardioStretchingByTargetMuscle(targetMuscle: string) {
+export async function getCardioStretchingByTargetMuscle(
+  targetMuscle: string,
+  userId: string,
+) {
   return db
     .select()
     .from(cardioStretching)
-    .where(eq(cardioStretching.targetMuscle, targetMuscle))
+    .where(
+      and(
+        eq(cardioStretching.targetMuscle, targetMuscle),
+        or(
+          isNull(cardioStretching.userId),
+          eq(cardioStretching.userId, userId),
+        ),
+      ),
+    )
     .all();
 }
 
-export async function searchCardioStretching(query: string) {
-  return db
-    .select()
-    .from(cardioStretching)
-    .where(like(cardioStretching.name, `%${query}%`))
-    .all();
+export async function searchCardioStretching(query: string, userId?: string) {
+  const conditions = userId
+    ? and(
+        like(cardioStretching.name, `%${query}%`),
+        or(
+          isNull(cardioStretching.userId),
+          eq(cardioStretching.userId, userId),
+        ),
+      )
+    : like(cardioStretching.name, `%${query}%`);
+
+  return db.select().from(cardioStretching).where(conditions).all();
 }

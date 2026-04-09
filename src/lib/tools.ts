@@ -654,8 +654,8 @@ const toolHandlers: Record<string, ToolHandler> = {
 
       // Resolve exercise names for the AI
       const [exercises, cardioStretching] = await Promise.all([
-        getAllExercises(),
-        getAllCardioStretching(),
+        getAllExercises(userId),
+        getAllCardioStretching(userId),
       ]);
 
       const nameMap = new Map<string, string>();
@@ -844,11 +844,10 @@ const toolHandlers: Record<string, ToolHandler> = {
     }
   },
 
-  createExercise: async (args) => {
-    // Shared catalog — no userId needed
+  createExercise: async (args, userId) => {
     const name = args.name as string;
 
-    const existing = await searchExercises(name);
+    const existing = await searchExercises(name, userId);
     const exactMatch = existing.find(
       (e) => e.name.toLowerCase() === name.toLowerCase(),
     );
@@ -891,11 +890,10 @@ const toolHandlers: Record<string, ToolHandler> = {
     }
   },
 
-  createCardioStretching: async (args) => {
-    // Shared catalog — no userId needed
+  createCardioStretching: async (args, userId) => {
     const name = args.name as string;
 
-    const existing = await searchCardioStretching(name);
+    const existing = await searchCardioStretching(name, userId);
     const exactMatch = existing.find(
       (e) => e.name.toLowerCase() === name.toLowerCase(),
     );

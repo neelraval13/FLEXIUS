@@ -23,8 +23,8 @@ const WorkoutTodayPage: React.FC = async () => {
 
   const [plan, exercises, cardioStretching] = await Promise.all([
     getTodayPlan(userId),
-    getAllExercises(),
-    getAllCardioStretching(),
+    getAllExercises(userId),
+    getAllCardioStretching(userId),
   ]);
 
   if (!plan) {

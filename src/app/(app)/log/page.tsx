@@ -25,9 +25,11 @@ const LogPage: React.FC<LogPageProps> = async ({ searchParams }) => {
 
   const { exerciseId, source, returnTo } = await searchParams;
 
+  const userId = session.user.id;
+
   const [allExercises, allCardioStretching] = await Promise.all([
-    getAllExercises(),
-    getAllCardioStretching(),
+    getAllExercises(userId),
+    getAllCardioStretching(userId),
   ]);
 
   const exercises: SelectableExercise[] = allExercises.map((e) => ({

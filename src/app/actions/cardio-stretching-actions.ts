@@ -1,7 +1,7 @@
 // src/app/actions/cardio-stretching-actions.ts
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { cardioStretching } from "@/db/schema";
@@ -17,13 +17,34 @@ interface CardioStretchingInput {
   videoUrl: string | null;
 }
 
-export async function createCardioStretching(input: CardioStretchingInput) {
+const getAuthenticatedUserId = async (): Promise<string> => {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  return session.user.id;
+};
+
+const verifyOwnership = async (id: number, userId: string) => {
+  const [row] = await db
+    .select({ id: cardioStretching.id, userId: cardioStretching.userId })
+    .from(cardioStretching)
+    .where(eq(cardioStretching.id, id))
+    .limit(1);
+
+  if (!row) throw new Error("Entry not found");
+  if (row.userId === null) throw new Error("Cannot modify shared base entries");
+  if (row.userId !== userId)
+    throw new Error("You can only modify your own entries");
+
+  return row;
+};
+
+export async function createCardioStretching(input: CardioStretchingInput) {
+  const userId = await getAuthenticatedUserId();
 
   const result = await db
     .insert(cardioStretching)
     .values({
+      userId,
       name: input.name,
       targetMuscle: input.targetMuscle,
       category: input.category,
@@ -43,8 +64,8 @@ export async function updateCardioStretching(
   id: number,
   input: Partial<CardioStretchingInput>,
 ) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  const userId = await getAuthenticatedUserId();
+  await verifyOwnership(id, userId);
 
   const values: Record<string, unknown> = {};
 
@@ -62,7 +83,9 @@ export async function updateCardioStretching(
   const result = await db
     .update(cardioStretching)
     .set(values)
-    .where(eq(cardioStretching.id, id))
+    .where(
+      and(eq(cardioStretching.id, id), eq(cardioStretching.userId, userId)),
+    )
     .returning();
 
   revalidatePath("/exercises");
@@ -71,10 +94,14 @@ export async function updateCardioStretching(
 }
 
 export async function deleteCardioStretching(id: number) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  const userId = await getAuthenticatedUserId();
+  await verifyOwnership(id, userId);
 
-  await db.delete(cardioStretching).where(eq(cardioStretching.id, id));
+  await db
+    .delete(cardioStretching)
+    .where(
+      and(eq(cardioStretching.id, id), eq(cardioStretching.userId, userId)),
+    );
 
   revalidatePath("/exercises");
   revalidatePath("/settings");

@@ -57,11 +57,13 @@ const ExercisesPage: React.FC = async () => {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
+  const userId = session.user.id;
+
   const [exerciseRows, cardioRows, majorGroups, favorites] = await Promise.all([
-    getAllExercises(),
-    getAllCardioStretching(),
-    getDistinctMajorGroups(),
-    getUserFavorites(session.user.id),
+    getAllExercises(userId),
+    getAllCardioStretching(userId),
+    getDistinctMajorGroups(userId),
+    getUserFavorites(userId),
   ]);
 
   const favSet: FavoriteSet = new Set(

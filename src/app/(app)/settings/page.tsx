@@ -18,12 +18,14 @@ const SettingsPage = async () => {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
+  const userId = session.user.id;
+
   const [equipment, muscleGroups, exercises, cardioStretching] =
     await Promise.all([
-      getAllEquipment(),
-      getAllMuscleGroups(),
-      getAllExercises(),
-      getAllCardioStretching(),
+      getAllEquipment(userId),
+      getAllMuscleGroups(userId),
+      getAllExercises(userId),
+      getAllCardioStretching(userId),
     ]);
 
   const mappedEquipment = equipment.map((e) => ({

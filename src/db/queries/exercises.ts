@@ -1,9 +1,14 @@
-import { eq, like } from "drizzle-orm";
+import { eq, like, or, isNull, and } from "drizzle-orm";
 import { db } from "@/db";
 import { exercises } from "@/db/schema";
 
-export async function getAllExercises() {
-  return db.select().from(exercises).all();
+/** Return shared (seed) exercises + this user's private exercises */
+export async function getAllExercises(userId: string) {
+  return db
+    .select()
+    .from(exercises)
+    .where(or(isNull(exercises.userId), eq(exercises.userId, userId)))
+    .all();
 }
 
 export async function getExerciseById(id: number) {
@@ -15,26 +20,45 @@ export async function getExerciseById(id: number) {
   return rows[0] ?? null;
 }
 
-export async function getExercisesByMuscleGroup(muscleGroup: string) {
+export async function getExercisesByMuscleGroup(
+  muscleGroup: string,
+  userId: string,
+) {
   return db
     .select()
     .from(exercises)
-    .where(eq(exercises.muscleGroup, muscleGroup))
+    .where(
+      and(
+        eq(exercises.muscleGroup, muscleGroup),
+        or(isNull(exercises.userId), eq(exercises.userId, userId)),
+      ),
+    )
     .all();
 }
 
-export async function getExercisesByTargetMuscle(targetMuscle: string) {
+export async function getExercisesByTargetMuscle(
+  targetMuscle: string,
+  userId: string,
+) {
   return db
     .select()
     .from(exercises)
-    .where(eq(exercises.targetMuscle, targetMuscle))
+    .where(
+      and(
+        eq(exercises.targetMuscle, targetMuscle),
+        or(isNull(exercises.userId), eq(exercises.userId, userId)),
+      ),
+    )
     .all();
 }
 
-export async function searchExercises(query: string) {
-  return db
-    .select()
-    .from(exercises)
-    .where(like(exercises.name, `%${query}%`))
-    .all();
+export async function searchExercises(query: string, userId?: string) {
+  const conditions = userId
+    ? and(
+        like(exercises.name, `%${query}%`),
+        or(isNull(exercises.userId), eq(exercises.userId, userId)),
+      )
+    : like(exercises.name, `%${query}%`);
+
+  return db.select().from(exercises).where(conditions).all();
 }

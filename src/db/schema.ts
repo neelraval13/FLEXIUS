@@ -15,8 +15,11 @@ export const users = sqliteTable("users", {
 });
 
 // 1. Exercises
+// userId NULL = shared seed data (read-only for users)
+// userId set  = user-created (private, mutable by owner)
 export const exercises = sqliteTable("exercises", {
   id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   targetMuscle: text("target_muscle").notNull(),
   muscleGroup: text("muscle_group").notNull(),
@@ -29,6 +32,7 @@ export const exercises = sqliteTable("exercises", {
 // 2. Cardio / Stretching
 export const cardioStretching = sqliteTable("cardio_stretching", {
   id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   targetMuscle: text("target_muscle").notNull(),
   category: text("category").notNull(),
@@ -41,12 +45,14 @@ export const cardioStretching = sqliteTable("cardio_stretching", {
 // 3. Equipment
 export const equipment = sqliteTable("equipment", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull().unique(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
 });
 
 // 4. Muscle Groups
 export const muscleGroups = sqliteTable("muscle_groups", {
   id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   majorGroup: text("major_group").notNull(),
   targetMuscle: text("target_muscle").notNull(),
 });

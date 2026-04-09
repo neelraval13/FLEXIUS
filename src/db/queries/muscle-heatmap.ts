@@ -1,6 +1,6 @@
 // src/db/queries/muscle-heatmap.ts
 
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, or, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { workoutLogs, exercises, cardioStretching } from "@/db/schema";
 
@@ -40,9 +40,19 @@ export async function getWeeklyMuscleHeatmap(
 
   const heatmap: MuscleHeatmapData = {};
 
-  // Build lookup maps
-  const allExercises = await db.select().from(exercises).all();
-  const allCardio = await db.select().from(cardioStretching).all();
+  // Build lookup maps (shared + user's own exercises)
+  const allExercises = await db
+    .select()
+    .from(exercises)
+    .where(or(isNull(exercises.userId), eq(exercises.userId, userId)))
+    .all();
+  const allCardio = await db
+    .select()
+    .from(cardioStretching)
+    .where(
+      or(isNull(cardioStretching.userId), eq(cardioStretching.userId, userId)),
+    )
+    .all();
 
   const exerciseMap = new Map(
     allExercises.map((e) => [`exercise:${e.id}`, e.muscleGroup]),

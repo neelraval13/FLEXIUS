@@ -1,9 +1,14 @@
-import { eq, like } from "drizzle-orm";
+import { eq, like, or, isNull, and } from "drizzle-orm";
 import { db } from "@/db";
 import { equipment } from "@/db/schema";
 
-export async function getAllEquipment() {
-  return db.select().from(equipment).all();
+/** Return shared (seed) equipment + this user's private equipment */
+export async function getAllEquipment(userId: string) {
+  return db
+    .select()
+    .from(equipment)
+    .where(or(isNull(equipment.userId), eq(equipment.userId, userId)))
+    .all();
 }
 
 export async function getEquipmentById(id: number) {
@@ -15,10 +20,13 @@ export async function getEquipmentById(id: number) {
   return rows[0] ?? null;
 }
 
-export async function searchEquipment(query: string) {
-  return db
-    .select()
-    .from(equipment)
-    .where(like(equipment.name, `%${query}%`))
-    .all();
+export async function searchEquipment(query: string, userId?: string) {
+  const conditions = userId
+    ? and(
+        like(equipment.name, `%${query}%`),
+        or(isNull(equipment.userId), eq(equipment.userId, userId)),
+      )
+    : like(equipment.name, `%${query}%`);
+
+  return db.select().from(equipment).where(conditions).all();
 }
