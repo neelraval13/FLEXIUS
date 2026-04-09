@@ -29,42 +29,30 @@ export const POST = async (req: Request): Promise<Response> => {
 
     const userId = session.user.id;
 
-    // The max includes the log we just inserted, so we need to check if
-    // the current value IS the max (meaning it beat or tied the previous).
-    // For a true PR, current must be strictly greater than all *previous* values.
-    // Since the just-logged value is already in the DB, the previous max
-    // is the second-highest. Instead, we count how many logs have this max value.
+    // Get all existing logs for this exercise (BEFORE the new log is inserted)
+    const existingLogs = await db
+      .select({
+        weight: workoutLogs.weight,
+        duration: workoutLogs.durationMinutes,
+      })
+      .from(workoutLogs)
+      .where(
+        and(
+          eq(workoutLogs.userId, userId),
+          eq(workoutLogs.exerciseId, exerciseId),
+          eq(workoutLogs.exerciseSource, source),
+        ),
+      );
 
-    // Simpler approach: get all logs, the max is the current PR.
-    // If the just-logged value equals the max AND there's only one log at that max
-    // (the one we just inserted), it's a new PR.
-
-    // Even simpler: we check if weight > previous best (excluding current log).
-    // But we don't have the current log's ID. So let's just check:
-    // if the current value equals the overall max, and there were previous logs,
-    // it's likely a PR. For first-time exercises, it's always a PR.
-
-    // Cleanest approach: check if current value > second-highest value
-    // OR if this is the first log with weight data
-
+    // Weight PR check
     if (weight != null && weight > 0) {
-      const allWeights = await db
-        .select({ weight: workoutLogs.weight })
-        .from(workoutLogs)
-        .where(
-          and(
-            eq(workoutLogs.userId, userId),
-            eq(workoutLogs.exerciseId, exerciseId),
-            eq(workoutLogs.exerciseSource, source),
-          ),
-        );
+      const previousBest = existingLogs.reduce(
+        (max, log) => Math.max(max, log.weight ?? 0),
+        0,
+      );
 
-      const previousWeights = allWeights
-        .map((r) => r.weight ?? 0)
-        .sort((a, b) => b - a);
-
-      // If only one entry, it's the first log — always a PR
-      if (previousWeights.length <= 1) {
+      // First time logging this exercise with weight → PR
+      if (existingLogs.length === 0) {
         return Response.json({
           isPR: true,
           type: "weight",
@@ -73,11 +61,8 @@ export const POST = async (req: Request): Promise<Response> => {
         });
       }
 
-      // Second highest = previous PR (index 1 since index 0 might be current)
-      const previousBest =
-        previousWeights[0] === weight ? previousWeights[1] : previousWeights[0];
-
-      if (weight > (previousBest ?? 0)) {
+      // Strictly greater than all previous weights → PR
+      if (weight > previousBest) {
         return Response.json({
           isPR: true,
           type: "weight",
@@ -87,23 +72,14 @@ export const POST = async (req: Request): Promise<Response> => {
       }
     }
 
+    // Duration PR check
     if (durationMinutes != null && durationMinutes > 0) {
-      const allDurations = await db
-        .select({ duration: workoutLogs.durationMinutes })
-        .from(workoutLogs)
-        .where(
-          and(
-            eq(workoutLogs.userId, userId),
-            eq(workoutLogs.exerciseId, exerciseId),
-            eq(workoutLogs.exerciseSource, source),
-          ),
-        );
+      const previousBest = existingLogs.reduce(
+        (max, log) => Math.max(max, log.duration ?? 0),
+        0,
+      );
 
-      const previousDurations = allDurations
-        .map((r) => r.duration ?? 0)
-        .sort((a, b) => b - a);
-
-      if (previousDurations.length <= 1) {
+      if (existingLogs.length === 0) {
         return Response.json({
           isPR: true,
           type: "duration",
@@ -112,12 +88,7 @@ export const POST = async (req: Request): Promise<Response> => {
         });
       }
 
-      const previousBest =
-        previousDurations[0] === durationMinutes
-          ? previousDurations[1]
-          : previousDurations[0];
-
-      if (durationMinutes > (previousBest ?? 0)) {
+      if (durationMinutes > previousBest) {
         return Response.json({
           isPR: true,
           type: "duration",

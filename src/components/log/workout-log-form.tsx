@@ -158,6 +158,49 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
 
     startTransition(async () => {
       try {
+        // Check for PR BEFORE inserting (so the query isn't polluted)
+        let detectedPR: typeof prData = null;
+        try {
+          const maxWeight =
+            mode === "per-set" && showPerSetOption
+              ? Math.max(...setEntries.map((e) => e.weight ?? 0))
+              : typeof weight === "number"
+                ? weight
+                : null;
+          const maxDuration = typeof duration === "number" ? duration : null;
+
+          const prRes = await fetch("/api/pr", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              exerciseId: selectedExercise.id,
+              source: selectedExercise.source,
+              weight: maxWeight,
+              reps:
+                mode === "per-set"
+                  ? Math.max(...setEntries.map((e) => e.reps))
+                  : reps,
+              durationMinutes: maxDuration,
+            }),
+          });
+
+          if (prRes.ok) {
+            const pr = await prRes.json();
+            if (pr.isPR) {
+              detectedPR = {
+                type: pr.type,
+                exerciseName: selectedExercise.name,
+                previous: pr.previous,
+                current: pr.current,
+                unit: unit,
+              };
+            }
+          }
+        } catch {
+          // PR check failed — not critical
+        }
+
+        // Now insert the log
         if (mode === "per-set" && showPerSetOption) {
           const inputs = setEntries.map((entry, index) => ({
             exerciseId: selectedExercise.id,
@@ -199,48 +242,9 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
             notes: notes || null,
           });
         }
+
         setSuccess(selectedExercise.name);
-
-        // Check for PR
-        try {
-          const maxWeight =
-            mode === "per-set" && showPerSetOption
-              ? Math.max(...setEntries.map((e) => e.weight ?? 0))
-              : typeof weight === "number"
-                ? weight
-                : null;
-          const maxDuration = typeof duration === "number" ? duration : null;
-
-          const prRes = await fetch("/api/pr", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              exerciseId: selectedExercise.id,
-              source: selectedExercise.source,
-              weight: maxWeight,
-              reps:
-                mode === "per-set"
-                  ? Math.max(...setEntries.map((e) => e.reps))
-                  : reps,
-              durationMinutes: maxDuration,
-            }),
-          });
-
-          if (prRes.ok) {
-            const pr = await prRes.json();
-            if (pr.isPR) {
-              setPrData({
-                type: pr.type,
-                exerciseName: selectedExercise.name,
-                previous: pr.previous,
-                current: pr.current,
-                unit: unit,
-              });
-            }
-          }
-        } catch {
-          // PR check failed — not critical
-        }
+        if (detectedPR) setPrData(detectedPR);
       } catch {
         // Offline or server error — queue for later sync
         try {

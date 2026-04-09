@@ -49,11 +49,15 @@ const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
   const handleConfirm = () => {
     startTransition(async () => {
       try {
-        await quickLogFromPlan(exercise.id);
-        setShowConfirm(false);
-        triggerRestTimer();
+        // Check PR BEFORE inserting
+        let isPR = false;
+        let prDetail: {
+          type: string;
+          previous: number | null;
+          current: number;
+          unit: string;
+        } | null = null;
 
-        // Check for PR
         try {
           const prRes = await fetch("/api/pr", {
             method: "POST",
@@ -70,21 +74,37 @@ const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
           if (prRes.ok) {
             const pr = await prRes.json();
             if (pr.isPR) {
-              window.dispatchEvent(
-                new CustomEvent("flexius-pr", {
-                  detail: {
-                    type: pr.type,
-                    exerciseName: exercise.name,
-                    previous: pr.previous,
-                    current: pr.current,
-                    unit: exercise.unit || "kg",
-                  },
-                }),
-              );
+              isPR = true;
+              prDetail = {
+                type: pr.type,
+                previous: pr.previous,
+                current: pr.current,
+                unit: exercise.unit || "kg",
+              };
             }
           }
         } catch {
           // PR check not critical
+        }
+
+        // Now insert the log
+        await quickLogFromPlan(exercise.id);
+        setShowConfirm(false);
+        triggerRestTimer();
+
+        // Fire PR event if detected
+        if (isPR && prDetail) {
+          window.dispatchEvent(
+            new CustomEvent("flexius-pr", {
+              detail: {
+                type: prDetail.type,
+                exerciseName: exercise.name,
+                previous: prDetail.previous,
+                current: prDetail.current,
+                unit: prDetail.unit,
+              },
+            }),
+          );
         }
       } catch {
         // Offline — queue the log
