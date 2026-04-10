@@ -1,5 +1,5 @@
 // src/lib/weekly-report.ts
-import { eq, and, gte, lte, desc, lt } from "drizzle-orm";
+import { eq, and, gte, lte, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { workoutLogs, exercises, cardioStretching, users } from "@/db/schema";
 import { getWorkoutStreak } from "@/db/queries/dashboard";
@@ -95,46 +95,49 @@ export const generateWeeklyReport = async (
     .where(eq(users.id, userId))
     .limit(1);
 
-  const [currentLogs, previousLogs, streak] = await Promise.all([
-    getLogsForRange(userId, thisWeek.start, thisWeek.end),
-    getLogsForRange(userId, lastWeek.start, lastWeek.end),
-    getWorkoutStreak(userId),
-  ]);
+  // Batch-fetch all exercise + cardio metadata once (used for both muscle
+  // group resolution AND PR name resolution below)
+  const [allExercises, allCardio, currentLogs, previousLogs, streak] =
+    await Promise.all([
+      db
+        .select({
+          id: exercises.id,
+          name: exercises.name,
+          muscleGroup: exercises.muscleGroup,
+        })
+        .from(exercises)
+        .all(),
+      db
+        .select({
+          id: cardioStretching.id,
+          name: cardioStretching.name,
+        })
+        .from(cardioStretching)
+        .all(),
+      getLogsForRange(userId, thisWeek.start, thisWeek.end),
+      getLogsForRange(userId, lastWeek.start, lastWeek.end),
+      getWorkoutStreak(userId),
+    ]);
+
+  const exerciseMap = new Map(allExercises.map((e) => [e.id, e]));
+  const cardioMap = new Map(allCardio.map((e) => [e.id, e]));
 
   const currentStats = getStatsFromLogs(currentLogs);
   const prevStats = getStatsFromLogs(previousLogs);
 
-  // Resolve muscle groups for this week's exercises
-  const exerciseIds = [
-    ...new Set(
-      currentLogs
-        .filter((l) => l.exerciseSource === "exercise")
-        .map((l) => l.exerciseId),
-    ),
-  ];
-
+  // Resolve muscle groups for this week's exercises (in-memory lookup)
   const muscleGroupsHit = new Set<string>();
-
-  if (exerciseIds.length > 0) {
-    for (const exId of exerciseIds) {
-      const [ex] = await db
-        .select({ muscleGroup: exercises.muscleGroup })
-        .from(exercises)
-        .where(eq(exercises.id, exId))
-        .limit(1);
-
-      if (ex?.muscleGroup) {
-        muscleGroupsHit.add(ex.muscleGroup);
-      }
+  for (const log of currentLogs) {
+    if (log.exerciseSource === "exercise") {
+      const ex = exerciseMap.get(log.exerciseId);
+      if (ex?.muscleGroup) muscleGroupsHit.add(ex.muscleGroup);
     }
   }
 
   const hitArray = [...muscleGroupsHit];
   const missedArray = ALL_MAJOR_GROUPS.filter((g) => !muscleGroupsHit.has(g));
 
-  // Detect PRs this week: exercises where this week's max weight > all previous max weight
-  const prs: WeeklyReport["prs"] = [];
-
+  // Detect PRs: build map of this week's max weight per (source, exerciseId)
   const strengthLogs = currentLogs.filter(
     (l) => l.weight != null && l.weight > 0,
   );
@@ -151,45 +154,45 @@ export const generateWeeklyReport = async (
     }
   }
 
-  for (const [key, { weight, unit }] of exerciseWeightMap) {
-    const [source, idStr] = key.split(":");
-    const exerciseId = parseInt(idStr, 10);
+  // Batch-fetch ALL pre-week logs for the exercises we care about,
+  // then compute previous max per exercise in-memory
+  const previousMaxMap = new Map<string, number>();
 
-    // Get all-time max weight BEFORE this week
-    const previousMax = await db
-      .select({ weight: workoutLogs.weight })
+  if (exerciseWeightMap.size > 0) {
+    const allPrevLogs = await db
+      .select({
+        exerciseId: workoutLogs.exerciseId,
+        exerciseSource: workoutLogs.exerciseSource,
+        weight: workoutLogs.weight,
+      })
       .from(workoutLogs)
       .where(
         and(
           eq(workoutLogs.userId, userId),
-          eq(workoutLogs.exerciseId, exerciseId),
-          eq(workoutLogs.exerciseSource, source),
           lt(workoutLogs.performedAt, thisWeek.start),
         ),
       )
-      .orderBy(desc(workoutLogs.weight))
-      .limit(1);
+      .all();
 
-    const prevMax = previousMax[0]?.weight ?? 0;
+    for (const log of allPrevLogs) {
+      if (log.weight == null) continue;
+      const key = `${log.exerciseSource}:${log.exerciseId}`;
+      const current = previousMaxMap.get(key) ?? 0;
+      if (log.weight > current) previousMaxMap.set(key, log.weight);
+    }
+  }
 
+  // Build PRs list (in-memory comparisons + map lookups)
+  const prs: WeeklyReport["prs"] = [];
+  for (const [key, { weight, unit }] of exerciseWeightMap) {
+    const prevMax = previousMaxMap.get(key) ?? 0;
     if (weight > prevMax) {
-      // Get exercise name
-      let name = "Unknown";
-      if (source === "exercise") {
-        const [ex] = await db
-          .select({ name: exercises.name })
-          .from(exercises)
-          .where(eq(exercises.id, exerciseId))
-          .limit(1);
-        name = ex?.name ?? "Unknown";
-      } else {
-        const [ex] = await db
-          .select({ name: cardioStretching.name })
-          .from(cardioStretching)
-          .where(eq(cardioStretching.id, exerciseId))
-          .limit(1);
-        name = ex?.name ?? "Unknown";
-      }
+      const [source, idStr] = key.split(":");
+      const exerciseId = parseInt(idStr, 10);
+      const name =
+        source === "exercise"
+          ? (exerciseMap.get(exerciseId)?.name ?? "Unknown")
+          : (cardioMap.get(exerciseId)?.name ?? "Unknown");
 
       prs.push({ exerciseName: name, weight, unit });
     }
