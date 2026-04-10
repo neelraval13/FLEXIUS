@@ -4,8 +4,9 @@
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { workoutLogs, workoutPlans, workoutPlanExercises } from "@/db/schema";
+import { workoutLogs } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { autoCompletePlanExercise } from "@/lib/plan-completion";
 
 interface WorkoutLogInput {
   exerciseId: number;
@@ -23,54 +24,6 @@ const getAuthenticatedUserId = async (): Promise<string> => {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   return session.user.id;
-};
-
-const getTodayDateIST = (): string => {
-  return new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Calcutta",
-  });
-};
-
-const autoCompletePlanExercise = async (
-  userId: string,
-  exerciseId: number,
-  exerciseSource: string,
-  performedAt: string,
-) => {
-  const today = getTodayDateIST();
-  if (performedAt !== today) return;
-
-  // Find today's plan for this user
-  const plan = await db
-    .select({ id: workoutPlans.id })
-    .from(workoutPlans)
-    .where(and(eq(workoutPlans.userId, userId), eq(workoutPlans.date, today)))
-    .limit(1);
-
-  if (!plan[0]) return;
-
-  // Find a matching uncompleted plan exercise
-  const match = await db
-    .select({ id: workoutPlanExercises.id })
-    .from(workoutPlanExercises)
-    .where(
-      and(
-        eq(workoutPlanExercises.planId, plan[0].id),
-        eq(workoutPlanExercises.exerciseId, exerciseId),
-        eq(workoutPlanExercises.exerciseSource, exerciseSource),
-        eq(workoutPlanExercises.completed, 0),
-      ),
-    )
-    .limit(1);
-
-  if (!match[0]) return;
-
-  await db
-    .update(workoutPlanExercises)
-    .set({ completed: 1 })
-    .where(eq(workoutPlanExercises.id, match[0].id));
-
-  revalidatePath("/workout/today");
 };
 
 export async function createWorkoutLog(input: WorkoutLogInput) {
@@ -92,13 +45,14 @@ export async function createWorkoutLog(input: WorkoutLogInput) {
     })
     .returning();
 
-  await autoCompletePlanExercise(
+  await autoCompletePlanExercise({
     userId,
-    input.exerciseId,
-    input.exerciseSource,
-    input.performedAt,
-  );
+    exerciseId: input.exerciseId,
+    exerciseSource: input.exerciseSource,
+    performedAt: input.performedAt,
+  });
 
+  revalidatePath("/workout/today");
   revalidatePath("/history");
   revalidatePath("/");
   revalidatePath(`/exercises/${input.exerciseId}`);
@@ -195,12 +149,12 @@ export async function createBatchWorkoutLogs(
       notes: input.notes,
     });
 
-    await autoCompletePlanExercise(
+    await autoCompletePlanExercise({
       userId,
-      input.exerciseId,
-      input.exerciseSource,
-      input.performedAt,
-    );
+      exerciseId: input.exerciseId,
+      exerciseSource: input.exerciseSource,
+      performedAt: input.performedAt,
+    });
   }
 
   revalidatePath("/history");

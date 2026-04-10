@@ -1,6 +1,5 @@
 // src/app/api/chat/route.ts
 import type { Content, Part } from "@google/genai";
-import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import ai, { GEMINI_MODEL } from "@/lib/gemini";
@@ -9,9 +8,7 @@ import {
   invalidatePromptCache,
 } from "@/lib/build-system-prompt";
 import { toolDeclarations, executeTool } from "@/lib/tools";
-import { findPendingPlanExercise } from "@/db/queries/workout-plans";
-import { db } from "@/db";
-import { workoutPlanExercises } from "@/db/schema";
+import { autoCompletePlanExercise } from "@/lib/plan-completion";
 import type { ChatMessage, GroundingSource } from "@/types/chat";
 
 const MAX_TOOL_ROUNDS = 10;
@@ -71,53 +68,6 @@ const extractSources = (
   }
 
   return sources;
-};
-
-/**
- * Mark a plan exercise as completed directly via DB update.
- * Returns true if a row was updated.
- */
-const markCompleted = async (planExerciseId: number): Promise<boolean> => {
-  const result = await db
-    .update(workoutPlanExercises)
-    .set({ completed: 1 })
-    .where(eq(workoutPlanExercises.id, planExerciseId));
-
-  return (result.rowsAffected ?? 0) > 0;
-};
-
-/**
- * After logging a workout, mark the matching plan exercise as completed.
- * Uses the explicit planExerciseId if the AI provided it, otherwise
- * auto-matches by exerciseId + source against today's pending plan.
- */
-const markPlanExerciseIfNeeded = async (
-  toolArgs: Record<string, unknown>,
-  userId: string,
-): Promise<boolean> => {
-  try {
-    // 1. Explicit ID from the AI
-    if (toolArgs.planExerciseId != null) {
-      return await markCompleted(Number(toolArgs.planExerciseId));
-    }
-
-    // 2. Auto-match against today's plan
-    const exerciseId = toolArgs.exerciseId as number | undefined;
-    const source = toolArgs.source as string | undefined;
-
-    if (exerciseId == null || !source) return false;
-
-    const pending = await findPendingPlanExercise(userId, exerciseId, source);
-
-    if (pending) {
-      return await markCompleted(pending.id);
-    }
-
-    return false;
-  } catch (err) {
-    console.error("Failed to mark plan exercise completed:", err);
-    return false;
-  }
 };
 
 export const POST = async (req: Request): Promise<Response> => {
@@ -202,7 +152,17 @@ export const POST = async (req: Request): Promise<Response> => {
 
         // Auto-mark plan exercise as completed after logging
         if (LOG_TOOLS.has(name)) {
-          const marked = await markPlanExerciseIfNeeded(toolArgs, userId);
+          const marked = await autoCompletePlanExercise({
+            userId,
+            exerciseId: toolArgs.exerciseId as number,
+            exerciseSource: toolArgs.source as string,
+            performedAt:
+              (toolArgs.performedAt as string) ||
+              new Date().toLocaleDateString("en-CA", {
+                timeZone: "Asia/Kolkata",
+              }),
+            planExerciseId: toolArgs.planExerciseId as number | undefined,
+          });
           if (marked) {
             mutated = true;
           }
