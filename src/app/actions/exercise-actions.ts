@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { exercises } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { invalidatePromptCache } from "@/lib/build-system-prompt";
 
 interface ExerciseInput {
   name: string;
@@ -57,6 +58,7 @@ export async function createExercise(input: ExerciseInput) {
     })
     .returning();
 
+  invalidatePromptCache(userId);
   revalidatePath("/exercises");
   revalidatePath("/settings");
   return result[0];
@@ -88,6 +90,7 @@ export async function updateExercise(
     .where(and(eq(exercises.id, id), eq(exercises.userId, userId)))
     .returning();
 
+  invalidatePromptCache(userId);
   revalidatePath("/exercises");
   revalidatePath(`/exercises/${id}`);
   revalidatePath("/settings");
@@ -102,6 +105,7 @@ export async function deleteExercise(id: number) {
     .delete(exercises)
     .where(and(eq(exercises.id, id), eq(exercises.userId, userId)));
 
+  invalidatePromptCache(userId);
   revalidatePath("/exercises");
   revalidatePath("/settings");
 }

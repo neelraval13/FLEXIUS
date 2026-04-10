@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { equipment } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { invalidatePromptCache } from "@/lib/build-system-prompt";
 
 interface EquipmentInput {
   name: string;
@@ -41,6 +42,7 @@ export async function createEquipment(input: EquipmentInput) {
     .values({ userId, name: input.name })
     .returning();
 
+  invalidatePromptCache(userId);
   revalidatePath("/settings");
   return result[0];
 }
@@ -55,6 +57,7 @@ export async function updateEquipment(id: number, input: EquipmentInput) {
     .where(and(eq(equipment.id, id), eq(equipment.userId, userId)))
     .returning();
 
+  invalidatePromptCache(userId);
   revalidatePath("/settings");
   return result[0] ?? null;
 }
@@ -67,5 +70,6 @@ export async function deleteEquipment(id: number) {
     .delete(equipment)
     .where(and(eq(equipment.id, id), eq(equipment.userId, userId)));
 
+  invalidatePromptCache(userId);
   revalidatePath("/settings");
 }

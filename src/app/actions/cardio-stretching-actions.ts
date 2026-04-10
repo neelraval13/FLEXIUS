@@ -5,6 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { cardioStretching } from "@/db/schema";
+import { invalidatePromptCache } from "@/lib/build-system-prompt";
 import { auth } from "@/lib/auth";
 
 interface CardioStretchingInput {
@@ -55,6 +56,7 @@ export async function createCardioStretching(input: CardioStretchingInput) {
     })
     .returning();
 
+  invalidatePromptCache(userId);
   revalidatePath("/exercises");
   revalidatePath("/settings");
   return result[0];
@@ -88,6 +90,7 @@ export async function updateCardioStretching(
     )
     .returning();
 
+  invalidatePromptCache(userId);
   revalidatePath("/exercises");
   revalidatePath("/settings");
   return result[0] ?? null;
@@ -103,6 +106,7 @@ export async function deleteCardioStretching(id: number) {
       and(eq(cardioStretching.id, id), eq(cardioStretching.userId, userId)),
     );
 
+  invalidatePromptCache(userId);
   revalidatePath("/exercises");
   revalidatePath("/settings");
 }

@@ -4,7 +4,10 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import ai, { GEMINI_MODEL } from "@/lib/gemini";
-import { buildSystemPrompt } from "@/lib/build-system-prompt";
+import {
+  buildSystemPrompt,
+  invalidatePromptCache,
+} from "@/lib/build-system-prompt";
 import { toolDeclarations, executeTool } from "@/lib/tools";
 import { findPendingPlanExercise } from "@/db/queries/workout-plans";
 import { db } from "@/db";
@@ -255,6 +258,7 @@ export const POST = async (req: Request): Promise<Response> => {
 
     // Revalidate affected pages so router.refresh() gets fresh data
     if (mutated) {
+      invalidatePromptCache(userId);
       revalidatePath("/workout/today");
       revalidatePath("/history");
       revalidatePath("/");

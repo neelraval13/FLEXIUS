@@ -14,6 +14,75 @@ interface UserContext {
   name: string;
 }
 
+// ─── Per-user prompt cache ───────────────────────────────
+// Caches the full assembled context for ~30s. Long enough to benefit
+// a normal chat session (multiple messages within seconds of each other),
+// short enough that mutations from tool calls are reflected quickly.
+// Cache key = userId. Cleared automatically on TTL expiry.
+
+const PROMPT_CACHE_TTL_MS = 30_000;
+
+interface CachedPromptContext {
+  equipment: Awaited<ReturnType<typeof getAllEquipment>>;
+  muscleGroups: Awaited<ReturnType<typeof getAllMuscleGroups>>;
+  exercises: Awaited<ReturnType<typeof getAllExercises>>;
+  cardioStretching: Awaited<ReturnType<typeof getAllCardioStretching>>;
+  todayPlan: Awaited<ReturnType<typeof getTodayPlan>>;
+  profile: Awaited<ReturnType<typeof getProfile>>;
+  favorites: Awaited<ReturnType<typeof getUserFavorites>>;
+  expiresAt: number;
+}
+
+const promptCache = new Map<string, CachedPromptContext>();
+
+const fetchPromptContext = async (
+  userId: string,
+): Promise<CachedPromptContext> => {
+  const cached = promptCache.get(userId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached;
+  }
+
+  const [
+    equipment,
+    muscleGroups,
+    exercises,
+    cardioStretching,
+    todayPlan,
+    profile,
+    favorites,
+  ] = await Promise.all([
+    getAllEquipment(userId),
+    getAllMuscleGroups(userId),
+    getAllExercises(userId),
+    getAllCardioStretching(userId),
+    getTodayPlan(userId),
+    getProfile(userId),
+    getUserFavorites(userId),
+  ]);
+
+  const fresh: CachedPromptContext = {
+    equipment,
+    muscleGroups,
+    exercises,
+    cardioStretching,
+    todayPlan,
+    profile,
+    favorites,
+    expiresAt: Date.now() + PROMPT_CACHE_TTL_MS,
+  };
+
+  promptCache.set(userId, fresh);
+  return fresh;
+};
+
+/** Manually invalidate a user's cached prompt context. Call after writes. */
+export const invalidatePromptCache = (userId: string): void => {
+  promptCache.delete(userId);
+};
+
+// ─── Formatters ──────────────────────────────────────────
+
 const formatEquipmentList = (
   equipment: { id: number; name: string }[],
 ): string => {
@@ -128,7 +197,7 @@ const formatUserProfile = (
 };
 
 export const buildSystemPrompt = async (user: UserContext): Promise<string> => {
-  const [
+  const {
     equipment,
     muscleGroups,
     exercises,
@@ -136,15 +205,7 @@ export const buildSystemPrompt = async (user: UserContext): Promise<string> => {
     todayPlan,
     profile,
     favorites,
-  ] = await Promise.all([
-    getAllEquipment(user.userId),
-    getAllMuscleGroups(user.userId),
-    getAllExercises(user.userId),
-    getAllCardioStretching(user.userId),
-    getTodayPlan(user.userId),
-    getProfile(user.userId),
-    getUserFavorites(user.userId),
-  ]);
+  } = await fetchPromptContext(user.userId);
 
   // Build favorites section
   const formatFavorites = (): string => {

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { muscleGroups } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { invalidatePromptCache } from "@/lib/build-system-prompt";
 
 interface MuscleGroupInput {
   majorGroup: string;
@@ -46,6 +47,7 @@ export async function createMuscleGroup(input: MuscleGroupInput) {
     })
     .returning();
 
+  invalidatePromptCache(userId);
   revalidatePath("/settings");
   revalidatePath("/exercises");
   return result[0];
@@ -70,6 +72,7 @@ export async function updateMuscleGroup(
     .where(and(eq(muscleGroups.id, id), eq(muscleGroups.userId, userId)))
     .returning();
 
+  invalidatePromptCache(userId);
   revalidatePath("/settings");
   revalidatePath("/exercises");
   return result[0] ?? null;
@@ -83,6 +86,7 @@ export async function deleteMuscleGroup(id: number) {
     .delete(muscleGroups)
     .where(and(eq(muscleGroups.id, id), eq(muscleGroups.userId, userId)));
 
+  invalidatePromptCache(userId);
   revalidatePath("/settings");
   revalidatePath("/exercises");
 }
