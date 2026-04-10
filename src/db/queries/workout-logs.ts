@@ -79,31 +79,27 @@ export async function getWorkoutLogsWithExerciseName(
     ? await getWorkoutLogsByDate(userId, date)
     : await getAllWorkoutLogs(userId);
 
-  const enriched = await Promise.all(
-    allLogs.map(async (log) => {
-      let exerciseName = "Unknown";
+  if (allLogs.length === 0) return [];
 
-      if (log.exerciseSource === "exercise") {
-        const rows = await db
-          .select({ name: exercises.name })
-          .from(exercises)
-          .where(eq(exercises.id, log.exerciseId))
-          .limit(1);
-        exerciseName = rows[0]?.name ?? "Unknown";
-      } else {
-        const rows = await db
-          .select({ name: cardioStretching.name })
-          .from(cardioStretching)
-          .where(eq(cardioStretching.id, log.exerciseId))
-          .limit(1);
-        exerciseName = rows[0]?.name ?? "Unknown";
-      }
+  // Fetch all exercise names in 2 queries instead of N+1
+  const [allExercises, allCardio] = await Promise.all([
+    db.select({ id: exercises.id, name: exercises.name }).from(exercises).all(),
+    db
+      .select({ id: cardioStretching.id, name: cardioStretching.name })
+      .from(cardioStretching)
+      .all(),
+  ]);
 
-      return { ...log, exerciseName };
-    }),
-  );
+  const exerciseMap = new Map(allExercises.map((e) => [e.id, e.name]));
+  const cardioMap = new Map(allCardio.map((e) => [e.id, e.name]));
 
-  return enriched;
+  return allLogs.map((log) => ({
+    ...log,
+    exerciseName:
+      log.exerciseSource === "exercise"
+        ? (exerciseMap.get(log.exerciseId) ?? "Unknown")
+        : (cardioMap.get(log.exerciseId) ?? "Unknown"),
+  }));
 }
 
 export async function getDistinctLogDates(userId: string) {
