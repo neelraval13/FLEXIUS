@@ -68,53 +68,45 @@ export const getFavorites = async (
     .from(favoriteExercises)
     .where(eq(favoriteExercises.userId, userId));
 
-  const enriched: FavoriteExercise[] = await Promise.all(
-    favs.map(
-      async (fav: {
-        id: number;
-        userId: string;
-        exerciseId: number;
-        source: ExerciseSource;
-        createdAt: string;
-      }): Promise<FavoriteExercise> => {
-        if (fav.source === "exercise") {
-          const [ex] = await db
-            .select({
-              name: exercises.name,
-              targetMuscle: exercises.targetMuscle,
-            })
-            .from(exercises)
-            .where(eq(exercises.id, fav.exerciseId))
-            .limit(1);
-          return {
-            id: fav.id,
-            exerciseId: fav.exerciseId,
-            source: fav.source,
-            name: ex?.name ?? "Unknown",
-            targetMuscle: ex?.targetMuscle ?? "",
-          };
-        } else {
-          const [cs] = await db
-            .select({
-              name: cardioStretching.name,
-              targetMuscle: cardioStretching.targetMuscle,
-            })
-            .from(cardioStretching)
-            .where(eq(cardioStretching.id, fav.exerciseId))
-            .limit(1);
-          return {
-            id: fav.id,
-            exerciseId: fav.exerciseId,
-            source: fav.source,
-            name: cs?.name ?? "Unknown",
-            targetMuscle: cs?.targetMuscle ?? "",
-          };
-        }
-      },
-    ),
-  );
+  if (favs.length === 0) return [];
 
-  return enriched;
+  // Batch-fetch all exercise + cardio details in 2 queries instead of N+1
+  const [allExercises, allCardio] = await Promise.all([
+    db
+      .select({
+        id: exercises.id,
+        name: exercises.name,
+        targetMuscle: exercises.targetMuscle,
+      })
+      .from(exercises)
+      .all(),
+    db
+      .select({
+        id: cardioStretching.id,
+        name: cardioStretching.name,
+        targetMuscle: cardioStretching.targetMuscle,
+      })
+      .from(cardioStretching)
+      .all(),
+  ]);
+
+  const exerciseMap = new Map(allExercises.map((e) => [e.id, e]));
+  const cardioMap = new Map(allCardio.map((e) => [e.id, e]));
+
+  return favs.map((fav) => {
+    const details =
+      fav.source === "exercise"
+        ? exerciseMap.get(fav.exerciseId)
+        : cardioMap.get(fav.exerciseId);
+
+    return {
+      id: fav.id,
+      exerciseId: fav.exerciseId,
+      source: fav.source,
+      name: details?.name ?? "Unknown",
+      targetMuscle: details?.targetMuscle ?? "",
+    };
+  });
 };
 
 export const toggleFavorite = async (
