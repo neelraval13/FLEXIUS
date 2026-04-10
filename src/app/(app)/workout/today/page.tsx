@@ -10,6 +10,7 @@ import PlanCacher from "@/components/workout/plan-cacher";
 import { buildPlanContext } from "@/lib/plan-context";
 import type { TodayPlanData, PlanExerciseDetail } from "@/types/workout-plan";
 import type { Metadata } from "next";
+import { getUserTimezone } from "@/db/queries/profile";
 
 export const metadata: Metadata = {
   title: "Today's Workout",
@@ -21,8 +22,10 @@ const WorkoutTodayPage: React.FC = async () => {
 
   const userId = session.user.id;
 
+  const userTimezone = await getUserTimezone(userId);
+
   const [plan, exercises, cardioStretching] = await Promise.all([
-    getTodayPlan(userId),
+    getTodayPlan(userId, userTimezone),
     getAllExercises(userId),
     getAllCardioStretching(userId),
   ]);
@@ -81,7 +84,11 @@ const WorkoutTodayPage: React.FC = async () => {
   return (
     <>
       <PlanCacher plan={todayPlanData} />
-      <WorkoutWithTimer plan={todayPlanData} planContext={planContext} />
+      <WorkoutWithTimer
+        plan={todayPlanData}
+        planContext={planContext}
+        timezone={userTimezone}
+      />
     </>
   );
 };

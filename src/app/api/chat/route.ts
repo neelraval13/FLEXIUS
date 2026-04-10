@@ -10,6 +10,8 @@ import {
 import { toolDeclarations, executeTool } from "@/lib/tools";
 import { autoCompletePlanExercise } from "@/lib/plan-completion";
 import type { ChatMessage, GroundingSource } from "@/types/chat";
+import { getUserTimezone } from "@/db/queries/profile";
+import { getTodayForTimezone } from "@/lib/user-timezone";
 
 const MAX_TOOL_ROUNDS = 10;
 
@@ -77,6 +79,7 @@ export const POST = async (req: Request): Promise<Response> => {
   }
 
   const userId = session.user.id;
+  const userTimezone = await getUserTimezone(userId);
 
   try {
     const { messages, imageBase64, imageMimeType } = (await req.json()) as {
@@ -158,9 +161,7 @@ export const POST = async (req: Request): Promise<Response> => {
             exerciseSource: toolArgs.source as string,
             performedAt:
               (toolArgs.performedAt as string) ||
-              new Date().toLocaleDateString("en-CA", {
-                timeZone: "Asia/Kolkata",
-              }),
+              getTodayForTimezone(userTimezone),
             planExerciseId: toolArgs.planExerciseId as number | undefined,
           });
           if (marked) {

@@ -36,6 +36,7 @@ export const upsertProfile = async (
     dateOfBirth?: string | null;
     gender?: string | null;
     fitnessGoal?: string | null;
+    timezone?: string;
   },
 ) => {
   const existing = await getProfile(userId);
@@ -157,4 +158,14 @@ export const getFavoriteIds = async (userId: string): Promise<Set<string>> => {
         `${f.source}:${f.exerciseId}`,
     ),
   );
+};
+
+/** Get just the user's timezone. Falls back to Asia/Kolkata. */
+export const getUserTimezone = async (userId: string): Promise<string> => {
+  const [row] = await db
+    .select({ timezone: userProfiles.timezone })
+    .from(userProfiles)
+    .where(eq(userProfiles.id, userId))
+    .limit(1);
+  return row?.timezone ?? "Asia/Kolkata";
 };

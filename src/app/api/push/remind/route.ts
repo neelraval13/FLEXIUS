@@ -6,6 +6,8 @@ import { db } from "@/db";
 import { users, pushSubscriptions, workoutPlans } from "@/db/schema";
 import { getWorkoutStreak } from "@/db/queries/dashboard";
 import { sendPushToUser, type PushPayload } from "@/lib/push";
+import { getUserTimezone } from "@/db/queries/profile";
+import { getTodayForTimezone } from "@/lib/user-timezone";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -22,14 +24,12 @@ export const GET = async (req: Request): Promise<Response> => {
       .selectDistinct({ userId: pushSubscriptions.userId })
       .from(pushSubscriptions);
 
-    const today = new Date().toLocaleDateString("en-CA", {
-      timeZone: "Asia/Calcutta",
-    });
-
     let notified = 0;
 
     for (const { userId } of subs) {
-      const streak = await getWorkoutStreak(userId);
+      const timezone = await getUserTimezone(userId);
+      const today = getTodayForTimezone(timezone);
+      const streak = await getWorkoutStreak(userId, timezone);
 
       // Check if user has a plan for today
       const todayPlan = await db

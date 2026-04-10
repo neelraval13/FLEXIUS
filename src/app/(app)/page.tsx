@@ -18,6 +18,8 @@ import RecentActivity from "@/components/dashboard/recent-activity";
 import QuickActions from "@/components/dashboard/quick-actions";
 import MuscleHeatmap from "@/components/dashboard/muscle-heatmap";
 import type { RecentLogEntry } from "@/types/dashboard";
+import { getUserTimezone } from "@/db/queries/profile";
+import { getNowForTimezone } from "@/lib/user-timezone";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -30,6 +32,8 @@ const DashboardPage = async () => {
   const userId = session.user.id;
   const userName = session.user.name ?? "there";
 
+  const userTimezone = await getUserTimezone(userId);
+
   const [
     stats,
     streak,
@@ -39,13 +43,13 @@ const DashboardPage = async () => {
     allCardio,
     muscleData,
   ] = await Promise.all([
-    getWeeklyStats(userId),
-    getWorkoutStreak(userId),
+    getWeeklyStats(userId, userTimezone),
+    getWorkoutStreak(userId, userTimezone),
     getRecentLogs(userId, 6),
-    getTodayPlan(userId),
+    getTodayPlan(userId, userTimezone),
     getAllExercises(userId),
     getAllCardioStretching(userId),
-    getWeeklyMuscleHeatmap(userId),
+    getWeeklyMuscleHeatmap(userId, userTimezone),
   ]);
 
   const nameMap = new Map<string, string>();
@@ -78,9 +82,8 @@ const DashboardPage = async () => {
       }
     : null;
 
-  const hour = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-  ).getHours();
+  const now = getNowForTimezone(userTimezone);
+  const hour = now.getHours();
   const greeting =
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
@@ -92,11 +95,7 @@ const DashboardPage = async () => {
             {greeting}, {userName}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {new Date(
-              new Date().toLocaleString("en-US", {
-                timeZone: "Asia/Kolkata",
-              }),
-            ).toLocaleDateString("en-IN", {
+            {now.toLocaleDateString("en-IN", {
               weekday: "long",
               day: "numeric",
               month: "long",

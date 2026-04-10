@@ -25,7 +25,7 @@ const PlanHeader: React.FC<PlanHeaderProps> = ({
       day: "numeric",
       month: "long",
       year: "numeric",
-      timeZone: "Asia/Calcutta",
+      timeZone: "Asia/Kolkata",
     },
   );
 

@@ -14,9 +14,13 @@ import type { PlanExerciseDetail } from "@/types/workout-plan";
 
 interface QuickLogButtonProps {
   exercise: PlanExerciseDetail;
+  timezone?: string;
 }
 
-const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
+const QuickLogButton: React.FC<QuickLogButtonProps> = ({
+  exercise,
+  timezone = "Asia/Kolkata",
+}) => {
   const [isPending, startTransition] = useTransition();
   const [showConfirm, setShowConfirm] = useState(false);
   const [wasQueued, setWasQueued] = useState(false);
@@ -110,7 +114,7 @@ const QuickLogButton: React.FC<QuickLogButtonProps> = ({ exercise }) => {
         // Offline — queue the log
         try {
           const today = new Date().toLocaleDateString("en-CA", {
-            timeZone: "Asia/Calcutta",
+            timeZone: timezone,
           });
 
           await queueLog({

@@ -19,6 +19,7 @@ import {
   removeExerciseFromPlan,
   replacePlanExercise,
 } from "@/app/actions/workout-plan-actions";
+import { getUserTimezone } from "@/db/queries/profile";
 
 // ─── Tool Declarations ───────────────────────────────────────────────
 
@@ -502,11 +503,8 @@ interface ToolResult {
   error?: string;
 }
 
-const getTodayISO = (): string => {
-  return new Date()
-    .toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" })
-    .split("/")
-    .join("-");
+const getTodayISO = (timezone = "Asia/Kolkata"): string => {
+  return new Date().toLocaleDateString("en-CA", { timeZone: timezone });
 };
 
 type ToolArgs = Record<string, unknown>;
@@ -590,12 +588,12 @@ const toolHandlers: Record<string, ToolHandler> = {
     };
   },
 
-  logWorkout: async (args) => {
-    // createWorkoutLog gets userId internally via auth()
+  logWorkout: async (args, userId) => {
+    const timezone = await getUserTimezone(userId);
     const result = await createWorkoutLog({
       exerciseId: args.exerciseId as number,
       exerciseSource: args.source as "exercise" | "cardio_stretching",
-      performedAt: (args.performedAt as string) || getTodayISO(),
+      performedAt: (args.performedAt as string) || getTodayISO(timezone),
       sets: args.sets as number,
       reps: (args.reps as number) ?? null,
       weight: (args.weight as number) ?? null,
@@ -613,8 +611,8 @@ const toolHandlers: Record<string, ToolHandler> = {
     };
   },
 
-  logBatchWorkouts: async (args) => {
-    // createBatchWorkoutLogs gets userId internally via auth()
+  logBatchWorkouts: async (args, userId) => {
+    const timezone = await getUserTimezone(userId);
     const sets = args.sets as { reps: number; weight?: number }[];
     const totalSets = sets.length;
     const unit = (args.unit as string as "kg" | "lbs") ?? "kg";
@@ -622,7 +620,7 @@ const toolHandlers: Record<string, ToolHandler> = {
     const inputs = sets.map((set, index) => ({
       exerciseId: args.exerciseId as number,
       exerciseSource: args.source as "exercise" | "cardio_stretching",
-      performedAt: (args.performedAt as string) || getTodayISO(),
+      performedAt: (args.performedAt as string) || getTodayISO(timezone),
       sets: 1,
       reps: set.reps ?? null,
       weight: set.weight ?? null,

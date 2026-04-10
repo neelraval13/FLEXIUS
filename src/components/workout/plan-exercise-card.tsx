@@ -15,9 +15,13 @@ import type { PlanExerciseDetail } from "@/types/workout-plan";
 
 interface PlanExerciseCardProps {
   exercise: PlanExerciseDetail;
+  timezone?: string;
 }
 
-const PlanExerciseCard: React.FC<PlanExerciseCardProps> = ({ exercise }) => {
+const PlanExerciseCard: React.FC<PlanExerciseCardProps> = ({
+  exercise,
+  timezone,
+}) => {
   const [showVideo, setShowVideo] = useState(false);
 
   const parts: string[] = [];
@@ -102,7 +106,7 @@ const PlanExerciseCard: React.FC<PlanExerciseCardProps> = ({ exercise }) => {
 
         {/* Quick log */}
         <div className="border-t pt-3">
-          <QuickLogButton exercise={exercise} />
+          <QuickLogButton exercise={exercise} timezone={timezone} />
         </div>
       </CardContent>
     </Card>

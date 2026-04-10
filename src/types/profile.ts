@@ -10,6 +10,7 @@ export interface UserProfile {
   dateOfBirth: string | null;
   gender: string | null;
   fitnessGoal: string | null;
+  timezone: string;
 }
 
 export interface UpdateProfileInput {
@@ -21,6 +22,7 @@ export interface UpdateProfileInput {
   dateOfBirth?: string | null;
   gender?: string | null;
   fitnessGoal?: string | null;
+  timezone?: string;
 }
 
 export interface FavoriteExercise {

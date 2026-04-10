@@ -3,6 +3,7 @@
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "..";
 import { workoutPlans, workoutPlanExercises } from "../schema";
+import { getTodayForTimezone, DEFAULT_TIMEZONE } from "@/lib/user-timezone";
 
 export const getPlanByDate = async (userId: string, date: string) => {
   const plans = await db
@@ -23,10 +24,11 @@ export const getPlanByDate = async (userId: string, date: string) => {
   return { ...plan, exercises };
 };
 
-export const getTodayPlan = async (userId: string) => {
-  const today = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Calcutta",
-  });
+export const getTodayPlan = async (
+  userId: string,
+  timezone = DEFAULT_TIMEZONE,
+) => {
+  const today = getTodayForTimezone(timezone);
   return getPlanByDate(userId, today);
 };
 
@@ -53,10 +55,9 @@ export const findPendingPlanExercise = async (
   userId: string,
   exerciseId: number,
   exerciseSource: string,
+  timezone = DEFAULT_TIMEZONE,
 ): Promise<{ id: number } | undefined> => {
-  const today = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Calcutta",
-  });
+  const today = getTodayForTimezone(timezone);
 
   const result = await db
     .select({ planExerciseId: workoutPlanExercises.id })

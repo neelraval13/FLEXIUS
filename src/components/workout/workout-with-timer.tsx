@@ -21,11 +21,13 @@ interface PRData {
 interface WorkoutWithTimerProps {
   plan: TodayPlanData;
   planContext: string;
+  timezone?: string;
 }
 
 const WorkoutWithTimer: React.FC<WorkoutWithTimerProps> = ({
   plan,
   planContext,
+  timezone,
 }) => {
   const [prData, setPrData] = useState<PRData | null>(null);
 
@@ -53,7 +55,7 @@ const WorkoutWithTimer: React.FC<WorkoutWithTimerProps> = ({
           onDismiss={dismissPR}
         />
       )}
-      <TodayPlan plan={plan} />
+      <TodayPlan plan={plan} timezone={timezone} />
       <RestTimerOverlay />
       <PlanChatBubble planContext={planContext} />
     </RestTimerProvider>

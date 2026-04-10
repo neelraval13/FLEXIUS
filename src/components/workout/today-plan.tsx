@@ -15,9 +15,10 @@ import type { TodayPlanData } from "@/types/workout-plan";
 
 interface TodayPlanProps {
   plan: TodayPlanData;
+  timezone?: string;
 }
 
-const TodayPlan: React.FC<TodayPlanProps> = ({ plan }) => {
+const TodayPlan: React.FC<TodayPlanProps> = ({ plan, timezone }) => {
   const [isPending, startTransition] = useTransition();
 
   const completedCount = plan.exercises.filter((e) => e.completed).length;
@@ -52,7 +53,11 @@ const TodayPlan: React.FC<TodayPlanProps> = ({ plan }) => {
 
       <div className="space-y-3">
         {plan.exercises.map((exercise) => (
-          <PlanExerciseCard key={exercise.id} exercise={exercise} />
+          <PlanExerciseCard
+            key={exercise.id}
+            exercise={exercise}
+            timezone={timezone}
+          />
         ))}
       </div>
 

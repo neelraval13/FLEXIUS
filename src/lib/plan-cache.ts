@@ -52,10 +52,10 @@ export const getCachedPlan = async (): Promise<TodayPlanData | null> => {
 
       // Only return if cached today (IST)
       const cachedDate = new Date(result.cachedAt).toLocaleDateString("en-CA", {
-        timeZone: "Asia/Calcutta",
+        timeZone: "Asia/Kolkata",
       });
       const today = new Date().toLocaleDateString("en-CA", {
-        timeZone: "Asia/Calcutta",
+        timeZone: "Asia/Kolkata",
       });
 
       if (cachedDate === today) {

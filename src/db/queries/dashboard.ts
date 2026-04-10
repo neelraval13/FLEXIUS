@@ -3,22 +3,17 @@
 import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { workoutLogs } from "@/db/schema";
+import {
+  getWeekRangeForTimezone,
+  getNowForTimezone,
+  DEFAULT_TIMEZONE,
+} from "@/lib/user-timezone";
 
-export async function getWeeklyStats(userId: string) {
-  const now = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-  );
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-  monday.setHours(0, 0, 0, 0);
-
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
-
-  const startDate = monday.toISOString().split("T")[0];
-  const endDate = sunday.toISOString().split("T")[0];
+export async function getWeeklyStats(
+  userId: string,
+  timezone = DEFAULT_TIMEZONE,
+) {
+  const { start: startDate, end: endDate } = getWeekRangeForTimezone(timezone);
 
   const logs = await db
     .select()
@@ -70,10 +65,11 @@ export async function getRecentLogs(userId: string, limit = 5) {
   return logs;
 }
 
-export async function getWorkoutStreak(userId: string): Promise<number> {
-  const now = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-  );
+export async function getWorkoutStreak(
+  userId: string,
+  timezone = DEFAULT_TIMEZONE,
+): Promise<number> {
+  const now = getNowForTimezone(timezone);
   const today = now.toISOString().split("T")[0];
 
   const dates = await db

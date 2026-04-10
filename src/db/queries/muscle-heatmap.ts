@@ -1,6 +1,7 @@
 // src/db/queries/muscle-heatmap.ts
 
 import { eq, and, gte, lte, or, isNull } from "drizzle-orm";
+import { getWeekRangeForTimezone } from "@/lib/user-timezone";
 import { db } from "@/db";
 import { workoutLogs, exercises, cardioStretching } from "@/db/schema";
 
@@ -10,21 +11,9 @@ export interface MuscleHeatmapData {
 
 export async function getWeeklyMuscleHeatmap(
   userId: string,
+  timezone = "Asia/Kolkata",
 ): Promise<MuscleHeatmapData> {
-  const now = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-  );
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-  monday.setHours(0, 0, 0, 0);
-
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
-
-  const startDate = monday.toISOString().split("T")[0];
-  const endDate = sunday.toISOString().split("T")[0];
+  const { start: startDate, end: endDate } = getWeekRangeForTimezone(timezone);
 
   const logs = await db
     .select()

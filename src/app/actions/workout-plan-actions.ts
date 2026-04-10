@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { workoutPlans, workoutPlanExercises, workoutLogs } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { getUserTimezone } from "@/db/queries/profile";
+import { getTodayForTimezone } from "@/lib/user-timezone";
 
 interface PlanExerciseInput {
   exerciseId: number;
@@ -165,9 +167,7 @@ export const quickLogFromPlan = async (planExerciseId: number) => {
     userId,
   );
 
-  const today = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Calcutta",
-  });
+  const today = getTodayForTimezone(await getUserTimezone(userId));
 
   await db.insert(workoutLogs).values({
     userId,

@@ -118,6 +118,7 @@ export const userProfiles = sqliteTable("user_profiles", {
   dateOfBirth: text("date_of_birth"),
   gender: text("gender"),
   fitnessGoal: text("fitness_goal"),
+  timezone: text("timezone").notNull().default("Asia/Kolkata"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

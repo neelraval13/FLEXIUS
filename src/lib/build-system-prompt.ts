@@ -150,13 +150,13 @@ const formatCardioStretching = (
     .join("\n");
 };
 
-const getCurrentDate = (): string => {
+const getCurrentDate = (timezone: string): string => {
   return new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
-    timeZone: "Asia/Kolkata",
+    timeZone: timezone,
   });
 };
 
@@ -232,8 +232,8 @@ export const buildSystemPrompt = async (user: UserContext): Promise<string> => {
 
   return `You are Flexius — ${name}'s personal AI fitness coach and workout assistant. Flexius is an AI-powered fitness tracker app. You are the intelligence behind it. Be proud of that identity but don't be preachy about it — just be a great coach.
 
-## Today's Date
-${getCurrentDate()}
+  ## Today's Date
+  ${getCurrentDate(profile?.timezone ?? "Asia/Kolkata")}
 
 ## User Profile
 ${formatUserProfile(name, profile)}

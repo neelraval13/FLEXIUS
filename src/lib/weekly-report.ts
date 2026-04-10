@@ -1,5 +1,7 @@
 // src/lib/weekly-report.ts
 import { eq, and, gte, lte, lt } from "drizzle-orm";
+import { getWeekRangeForTimezone } from "@/lib/user-timezone";
+import { getUserTimezone } from "@/db/queries/profile";
 import { db } from "@/db";
 import { workoutLogs, exercises, cardioStretching, users } from "@/db/schema";
 import { getWorkoutStreak } from "@/db/queries/dashboard";
@@ -32,23 +34,8 @@ const ALL_MAJOR_GROUPS = [
   "Leg",
 ];
 
-const getWeekRange = (weeksAgo: number = 0) => {
-  const now = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-  );
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7) - weeksAgo * 7);
-  monday.setHours(0, 0, 0, 0);
-
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
-
-  return {
-    start: monday.toISOString().split("T")[0],
-    end: sunday.toISOString().split("T")[0],
-  };
+const getWeekRange = (weeksAgo: number = 0, timezone = "Asia/Kolkata") => {
+  return getWeekRangeForTimezone(timezone, weeksAgo);
 };
 
 const getLogsForRange = async (userId: string, start: string, end: string) => {
@@ -86,8 +73,9 @@ const getStatsFromLogs = (
 export const generateWeeklyReport = async (
   userId: string,
 ): Promise<WeeklyReport> => {
-  const thisWeek = getWeekRange(0);
-  const lastWeek = getWeekRange(1);
+  const timezone = await getUserTimezone(userId);
+  const thisWeek = getWeekRange(0, timezone);
+  const lastWeek = getWeekRange(1, timezone);
 
   const [user] = await db
     .select({ name: users.name })
