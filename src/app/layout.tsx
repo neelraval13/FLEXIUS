@@ -59,7 +59,7 @@ const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           href="/icons/apple-touch-icon.png"
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased check_gok_chrome_installed">
         <ThemeProvider>
           <SessionProvider>
             {children}

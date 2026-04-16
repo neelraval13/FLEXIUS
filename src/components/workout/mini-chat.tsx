@@ -1,8 +1,7 @@
 // src/components/workout/mini-chat.tsx
 "use client";
 
-import type React from "react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Send, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,12 +15,57 @@ interface MiniChatProps {
   planContext?: string;
 }
 
+const MINI_CHAT_STORAGE_KEY = "flexius-mini-chat-history";
+const MINI_CHAT_MAX_MESSAGES = 30;
+
+const loadMiniStored = (): ChatMessage[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(MINI_CHAT_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as ChatMessage[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveMiniMessages = (messages: ChatMessage[]): void => {
+  if (typeof window === "undefined") return;
+  try {
+    const sanitized = messages
+      .map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+        sources: msg.sources,
+      }))
+      .slice(-MINI_CHAT_MAX_MESSAGES);
+    window.localStorage.setItem(
+      MINI_CHAT_STORAGE_KEY,
+      JSON.stringify(sanitized),
+    );
+  } catch {
+    // storage full or disabled — ignore
+  }
+};
+
 const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Load saved history on mount
+  useEffect(() => {
+    const stored = loadMiniStored();
+    if (stored.length > 0) setMessages(stored);
+  }, []);
+
+  // Persist whenever messages change
+  useEffect(() => {
+    saveMiniMessages(messages);
+  }, [messages]);
 
   const { isListening, isSupported, transcript, toggleListening } =
     useVoiceInput({
@@ -102,13 +146,6 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
     }
   }, [input, isLoading, messages, planContext, scrollToBottom, router]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
   return (
     <div className="flex h-full flex-col">
       {/* Messages Area */}
@@ -170,7 +207,6 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
                 : input
             }
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
             placeholder="Ask about your workout..."
             className="max-h-20 flex-1 resize-none text-sm!"
             rows={1}

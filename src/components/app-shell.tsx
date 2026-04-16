@@ -73,7 +73,16 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <UserCircle className="h-6 w-6" />
           </Link>
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => {
+              // Clear chat history so a shared device doesn't leak conversations
+              try {
+                window.localStorage.removeItem("flexius-chat-history");
+                window.localStorage.removeItem("flexius-mini-chat-history");
+              } catch {
+                // ignore
+              }
+              signOut({ callbackUrl: "/login" });
+            }}
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-destructive"
             title="Sign Out"
           >

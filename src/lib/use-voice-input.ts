@@ -1,7 +1,7 @@
 // src/lib/use-voice-input.ts
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useSyncExternalStore } from "react";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -59,8 +59,10 @@ export const useVoiceInput = ({
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
-  const [isSupported] = useState(() =>
-    typeof window !== "undefined" ? getSpeechRecognition() !== null : false,
+  const isSupported = useSyncExternalStore(
+    () => () => {}, // subscribe (no-op — value never changes)
+    () => getSpeechRecognition() !== null, // client snapshot
+    () => false, // server snapshot
   );
 
   const stopListening = useCallback(() => {

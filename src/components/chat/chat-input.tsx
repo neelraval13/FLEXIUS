@@ -51,18 +51,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     adjustHeight();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if ((value.trim() || imageUrl) && !isLoading) {
-        onSend();
-        if (textareaRef.current) {
-          textareaRef.current.style.height = "auto";
-        }
-      }
-    }
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -117,7 +105,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
           ref={textareaRef}
           value={displayValue}
           onChange={handleInput}
-          onKeyDown={handleKeyDown}
           placeholder="Ask your Flexius coach..."
           rows={1}
           className="max-h-40 min-h-9 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm text-foreground placeholder-muted-foreground outline-none"
