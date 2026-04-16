@@ -1,3 +1,4 @@
+import { isNull } from "drizzle-orm";
 import { db } from "./index";
 import { equipment, muscleGroups, exercises, cardioStretching } from "./schema";
 import gymEquipment from "../../data/gym_equipment.json";
@@ -10,7 +11,7 @@ async function seed() {
 
   // 1. Equipment
   console.log("→ Seeding equipment...");
-  await db.delete(equipment);
+  await db.delete(equipment).where(isNull(equipment.userId));
   await db
     .insert(equipment)
     .values(gymEquipment.map((item) => ({ name: item.name })));
@@ -18,7 +19,7 @@ async function seed() {
 
   // 2. Muscle Groups (flatten nested structure)
   console.log("→ Seeding muscle groups...");
-  await db.delete(muscleGroups);
+  await db.delete(muscleGroups).where(isNull(muscleGroups.userId));
   const flatMuscleGroups = muscleGroupsData.flatMap((group) =>
     group.target_muscles.map((muscle) => ({
       majorGroup: group.major_group,
@@ -30,7 +31,7 @@ async function seed() {
 
   // 3. Exercises
   console.log("→ Seeding exercises...");
-  await db.delete(exercises);
+  await db.delete(exercises).where(isNull(exercises.userId));
   await db.insert(exercises).values(
     exercisesData.map((e) => ({
       name: e.exercise_name,
@@ -46,7 +47,7 @@ async function seed() {
 
   // 4. Cardio / Core / Stretching
   console.log("→ Seeding cardio & stretching...");
-  await db.delete(cardioStretching);
+  await db.delete(cardioStretching).where(isNull(cardioStretching.userId));
   await db.insert(cardioStretching).values(
     cardioData.map((e) => ({
       name: e.exercise_name,
