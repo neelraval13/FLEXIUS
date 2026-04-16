@@ -12,6 +12,7 @@ import { autoCompletePlanExercise } from "@/lib/plan-completion";
 import type { ChatMessage, GroundingSource } from "@/types/chat";
 import { getUserTimezone } from "@/db/queries/profile";
 import { getTodayForTimezone } from "@/lib/user-timezone";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const MAX_TOOL_ROUNDS = 10;
 
@@ -79,6 +80,22 @@ export const POST = async (req: Request): Promise<Response> => {
   }
 
   const userId = session.user.id;
+  // Rate limit: 20 requests per minute per user
+  const rateCheck = checkRateLimit(`chat:${userId}`, 20);
+  if (!rateCheck.allowed) {
+    return Response.json(
+      {
+        error: "Too many requests. Please wait a moment.",
+        retryAfterMs: rateCheck.resetInMs,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(rateCheck.resetInMs / 1000)),
+        },
+      },
+    );
+  }
   const userTimezone = await getUserTimezone(userId);
 
   try {

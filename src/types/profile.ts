@@ -11,6 +11,8 @@ export interface UserProfile {
   gender: string | null;
   fitnessGoal: string | null;
   timezone: string;
+  llmProvider: string;
+  llmApiKey: string | null;
 }
 
 export interface UpdateProfileInput {
@@ -23,6 +25,8 @@ export interface UpdateProfileInput {
   gender?: string | null;
   fitnessGoal?: string | null;
   timezone?: string;
+  llmProvider?: string;
+  llmApiKey?: string | null;
 }
 
 export interface FavoriteExercise {

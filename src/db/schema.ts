@@ -119,6 +119,8 @@ export const userProfiles = sqliteTable("user_profiles", {
   gender: text("gender"),
   fitnessGoal: text("fitness_goal"),
   timezone: text("timezone").notNull().default("Asia/Kolkata"),
+  llmProvider: text("llm_provider").notNull().default("gemini"),
+  llmApiKey: text("llm_api_key"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

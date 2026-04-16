@@ -37,6 +37,8 @@ export const upsertProfile = async (
     gender?: string | null;
     fitnessGoal?: string | null;
     timezone?: string;
+    llmProvider?: string;
+    llmApiKey?: string | null;
   },
 ) => {
   const existing = await getProfile(userId);
@@ -168,4 +170,22 @@ export const getUserTimezone = async (userId: string): Promise<string> => {
     .where(eq(userProfiles.id, userId))
     .limit(1);
   return row?.timezone ?? "Asia/Kolkata";
+};
+
+/** Get the user's LLM provider and API key */
+export const getUserLLMConfig = async (
+  userId: string,
+): Promise<{ provider: string; apiKey: string | null }> => {
+  const [row] = await db
+    .select({
+      provider: userProfiles.llmProvider,
+      apiKey: userProfiles.llmApiKey,
+    })
+    .from(userProfiles)
+    .where(eq(userProfiles.id, userId))
+    .limit(1);
+  return {
+    provider: row?.provider ?? "gemini",
+    apiKey: row?.apiKey ?? null,
+  };
 };
