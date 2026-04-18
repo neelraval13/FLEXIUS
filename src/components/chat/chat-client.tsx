@@ -124,6 +124,15 @@ const ChatClient: React.FC<ChatClientProps> = ({ provider, hasOwnKey }) => {
     setImagePreviewUrl(URL.createObjectURL(file));
   }, []);
 
+  // Clean up blob URL on unmount to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
+
   const handleImageRemove = useCallback(() => {
     if (imagePreviewUrl) {
       URL.revokeObjectURL(imagePreviewUrl);
