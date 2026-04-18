@@ -2,6 +2,7 @@
 "use client";
 
 import type React from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MuscleHeatmapData } from "@/db/queries/muscle-heatmap";
 
@@ -38,7 +39,8 @@ const getIntensity = (
   return { color: "text-red-400", bg: "bg-red-500/15", level: "Heavy" };
 };
 
-// Fill color for SVG regions based on set count
+// ─── SVG Fill & Stroke based on intensity ─────────────────
+
 const getFill = (sets: number): string => {
   if (sets === 0) return "rgba(136,145,165,0.08)";
   if (sets <= 4) return "rgba(56,189,248,0.25)";
@@ -55,7 +57,12 @@ const getStroke = (sets: number): string => {
   return "rgba(248,113,113,0.7)";
 };
 
-const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
+const inactiveF = "rgba(136,145,165,0.08)";
+const inactiveS = "rgba(136,145,165,0.15)";
+
+// ─── Front View SVG ───────────────────────────────────────
+
+const FrontBodySVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
   const s = (key: string) => data[key] ?? 0;
 
   return (
@@ -66,8 +73,8 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
         cy="28"
         rx="18"
         ry="22"
-        fill="rgba(136,145,165,0.1)"
-        stroke="rgba(136,145,165,0.2)"
+        fill={inactiveF}
+        stroke={inactiveS}
         strokeWidth="1"
       />
 
@@ -78,12 +85,12 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
         width="16"
         height="14"
         rx="4"
-        fill="rgba(136,145,165,0.08)"
-        stroke="rgba(136,145,165,0.15)"
+        fill={inactiveF}
+        stroke={inactiveS}
         strokeWidth="0.8"
       />
 
-      {/* Shoulders */}
+      {/* Shoulders (front delts) */}
       <path
         d="M68 62 Q58 64 50 78 L68 78 Z"
         fill={getFill(s("Shoulders"))}
@@ -104,19 +111,18 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
         stroke={getStroke(s("Chest"))}
         strokeWidth="1"
       />
-
-      {/* Back indicator (hatched bar behind chest) */}
-      <rect
-        x="72"
-        y="68"
-        width="56"
-        height="6"
-        rx="2"
-        fill={getFill(s("Back"))}
-        stroke={getStroke(s("Back"))}
-        strokeWidth="0.8"
-        opacity="0.8"
-      />
+      {/* Pec line */}
+      {s("Chest") > 0 && (
+        <line
+          x1="100"
+          y1="78"
+          x2="100"
+          y2="118"
+          stroke={getStroke(s("Chest"))}
+          strokeWidth="0.5"
+          opacity="0.3"
+        />
+      )}
 
       {/* Biceps */}
       <path
@@ -132,31 +138,17 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
         strokeWidth="1"
       />
 
-      {/* Triceps (back of arm, shown as inner strip) */}
-      <path
-        d="M56 130 L52 158 Q54 164 58 164 L62 164 Q64 158 62 130 Z"
-        fill={getFill(s("Triceps"))}
-        stroke={getStroke(s("Triceps"))}
-        strokeWidth="0.8"
-      />
-      <path
-        d="M144 130 L148 158 Q146 164 142 164 L138 164 Q136 158 138 130 Z"
-        fill={getFill(s("Triceps"))}
-        stroke={getStroke(s("Triceps"))}
-        strokeWidth="0.8"
-      />
-
       {/* Forearms */}
       <path
         d="M44 130 L38 170 Q40 174 44 174 L52 130 Z"
-        fill="rgba(136,145,165,0.08)"
-        stroke="rgba(136,145,165,0.15)"
+        fill={inactiveF}
+        stroke={inactiveS}
         strokeWidth="0.8"
       />
       <path
         d="M156 130 L162 170 Q160 174 156 174 L148 130 Z"
-        fill="rgba(136,145,165,0.08)"
-        stroke="rgba(136,145,165,0.15)"
+        fill={inactiveF}
+        stroke={inactiveS}
         strokeWidth="0.8"
       />
 
@@ -167,7 +159,6 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
         stroke={getStroke(s("Core"))}
         strokeWidth="1"
       />
-      {/* Ab lines */}
       {s("Core") > 0 && (
         <>
           <line
@@ -209,7 +200,7 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
         </>
       )}
 
-      {/* Legs — Quads */}
+      {/* Quads */}
       <path
         d="M78 196 L72 280 Q78 290 90 290 L90 200 Q86 196 78 196 Z"
         fill={getFill(s("Legs"))}
@@ -223,23 +214,21 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
         strokeWidth="1"
       />
 
-      {/* Calves */}
+      {/* Shins */}
       <path
         d="M74 290 L72 326 Q76 332 84 332 L88 290 Z"
-        fill={getFill(s("Legs"))}
-        stroke={getStroke(s("Legs"))}
+        fill={inactiveF}
+        stroke={inactiveS}
         strokeWidth="0.8"
-        opacity="0.8"
       />
       <path
         d="M126 290 L128 326 Q124 332 116 332 L112 290 Z"
-        fill={getFill(s("Legs"))}
-        stroke={getStroke(s("Legs"))}
+        fill={inactiveF}
+        stroke={inactiveS}
         strokeWidth="0.8"
-        opacity="0.8"
       />
 
-      {/* Labels for active groups */}
+      {/* Labels */}
       {s("Shoulders") > 0 && (
         <text
           x="36"
@@ -260,11 +249,6 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
           textAnchor="middle"
         >
           Chest
-        </text>
-      )}
-      {s("Back") > 0 && (
-        <text x="165" y="72" fontSize="7" fill="rgba(156,163,175,0.7)">
-          Back
         </text>
       )}
       {s("Biceps") > 0 && (
@@ -297,18 +281,296 @@ const BodyMapSVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
           fill="rgba(156,163,175,0.7)"
           textAnchor="middle"
         >
-          Legs
+          Quads
         </text>
       )}
     </svg>
   );
 };
 
+// ─── Back View SVG ────────────────────────────────────────
+
+const BackBodySVG: React.FC<{ data: MuscleHeatmapData }> = ({ data }) => {
+  const s = (key: string) => data[key] ?? 0;
+
+  return (
+    <svg viewBox="0 0 200 340" className="mx-auto h-56 w-auto">
+      {/* Head */}
+      <ellipse
+        cx="100"
+        cy="28"
+        rx="18"
+        ry="22"
+        fill={inactiveF}
+        stroke={inactiveS}
+        strokeWidth="1"
+      />
+
+      {/* Neck */}
+      <rect
+        x="92"
+        y="48"
+        width="16"
+        height="14"
+        rx="4"
+        fill={inactiveF}
+        stroke={inactiveS}
+        strokeWidth="0.8"
+      />
+
+      {/* Shoulders (rear delts) */}
+      <path
+        d="M68 62 Q58 64 50 78 L68 78 Z"
+        fill={getFill(s("Shoulders"))}
+        stroke={getStroke(s("Shoulders"))}
+        strokeWidth="1"
+      />
+      <path
+        d="M132 62 Q142 64 150 78 L132 78 Z"
+        fill={getFill(s("Shoulders"))}
+        stroke={getStroke(s("Shoulders"))}
+        strokeWidth="1"
+      />
+
+      {/* Traps */}
+      <path
+        d="M78 60 L92 66 L100 62 L108 66 L122 60 L122 78 L78 78 Z"
+        fill={getFill(s("Back"))}
+        stroke={getStroke(s("Back"))}
+        strokeWidth="0.8"
+      />
+
+      {/* Lats + Upper back */}
+      <path
+        d="M68 78 L68 130 Q76 140 86 142 L86 118 Q84 100 78 90 Z"
+        fill={getFill(s("Back"))}
+        stroke={getStroke(s("Back"))}
+        strokeWidth="1"
+      />
+      <path
+        d="M132 78 L132 130 Q124 140 114 142 L114 118 Q116 100 122 90 Z"
+        fill={getFill(s("Back"))}
+        stroke={getStroke(s("Back"))}
+        strokeWidth="1"
+      />
+
+      {/* Mid back (spinal erectors) */}
+      <path
+        d="M86 90 L86 142 Q92 148 100 148 Q108 148 114 142 L114 90 Q108 84 100 84 Q92 84 86 90 Z"
+        fill={getFill(s("Back"))}
+        stroke={getStroke(s("Back"))}
+        strokeWidth="1"
+      />
+      {/* Spine line */}
+      {s("Back") > 0 && (
+        <line
+          x1="100"
+          y1="78"
+          x2="100"
+          y2="145"
+          stroke={getStroke(s("Back"))}
+          strokeWidth="0.6"
+          opacity="0.3"
+        />
+      )}
+
+      {/* Triceps */}
+      <path
+        d="M50 78 L42 110 Q40 120 44 130 L56 130 Q60 118 58 108 L68 78 Z"
+        fill={getFill(s("Triceps"))}
+        stroke={getStroke(s("Triceps"))}
+        strokeWidth="1"
+      />
+      <path
+        d="M150 78 L158 110 Q160 120 156 130 L144 130 Q140 118 142 108 L132 78 Z"
+        fill={getFill(s("Triceps"))}
+        stroke={getStroke(s("Triceps"))}
+        strokeWidth="1"
+      />
+
+      {/* Forearms */}
+      <path
+        d="M44 130 L38 170 Q40 174 44 174 L52 130 Z"
+        fill={inactiveF}
+        stroke={inactiveS}
+        strokeWidth="0.8"
+      />
+      <path
+        d="M156 130 L162 170 Q160 174 156 174 L148 130 Z"
+        fill={inactiveF}
+        stroke={inactiveS}
+        strokeWidth="0.8"
+      />
+
+      {/* Lower back */}
+      <path
+        d="M78 148 L78 190 Q88 196 100 196 Q112 196 122 190 L122 148 Q112 152 100 152 Q88 152 78 148 Z"
+        fill={getFill(s("Back"))}
+        stroke={getStroke(s("Back"))}
+        strokeWidth="1"
+        opacity="0.8"
+      />
+
+      {/* Glutes */}
+      <path
+        d="M78 190 Q78 210 90 214 L90 196 Q86 194 78 190 Z"
+        fill={getFill(s("Legs"))}
+        stroke={getStroke(s("Legs"))}
+        strokeWidth="1"
+      />
+      <path
+        d="M122 190 Q122 210 110 214 L110 196 Q114 194 122 190 Z"
+        fill={getFill(s("Legs"))}
+        stroke={getStroke(s("Legs"))}
+        strokeWidth="1"
+      />
+      {/* Glute division line */}
+      <line
+        x1="100"
+        y1="192"
+        x2="100"
+        y2="216"
+        stroke={getStroke(s("Legs"))}
+        strokeWidth="0.4"
+        opacity="0.3"
+      />
+
+      {/* Hamstrings */}
+      <path
+        d="M78 214 L72 280 Q78 290 90 290 L90 214 Z"
+        fill={getFill(s("Legs"))}
+        stroke={getStroke(s("Legs"))}
+        strokeWidth="1"
+      />
+      <path
+        d="M122 214 L128 280 Q122 290 110 290 L110 214 Z"
+        fill={getFill(s("Legs"))}
+        stroke={getStroke(s("Legs"))}
+        strokeWidth="1"
+      />
+
+      {/* Calves */}
+      <path
+        d="M74 290 L70 310 Q74 322 82 322 Q88 318 88 310 L88 290 Z"
+        fill={getFill(s("Legs"))}
+        stroke={getStroke(s("Legs"))}
+        strokeWidth="0.8"
+      />
+      <path
+        d="M126 290 L130 310 Q126 322 118 322 Q112 318 112 310 L112 290 Z"
+        fill={getFill(s("Legs"))}
+        stroke={getStroke(s("Legs"))}
+        strokeWidth="0.8"
+      />
+
+      {/* Feet */}
+      <ellipse
+        cx="80"
+        cy="330"
+        rx="10"
+        ry="4"
+        fill={inactiveF}
+        stroke={inactiveS}
+        strokeWidth="0.6"
+      />
+      <ellipse
+        cx="120"
+        cy="330"
+        rx="10"
+        ry="4"
+        fill={inactiveF}
+        stroke={inactiveS}
+        strokeWidth="0.6"
+      />
+
+      {/* Labels */}
+      {s("Shoulders") > 0 && (
+        <text
+          x="36"
+          y="70"
+          fontSize="7"
+          fill="rgba(156,163,175,0.7)"
+          textAnchor="end"
+        >
+          Rear Delts
+        </text>
+      )}
+      {s("Back") > 0 && (
+        <text
+          x="100"
+          y="116"
+          fontSize="7"
+          fill="rgba(156,163,175,0.7)"
+          textAnchor="middle"
+        >
+          Back
+        </text>
+      )}
+      {s("Triceps") > 0 && (
+        <text x="168" y="110" fontSize="7" fill="rgba(156,163,175,0.7)">
+          Triceps
+        </text>
+      )}
+      {s("Back") > 0 && (
+        <text
+          x="100"
+          y="172"
+          fontSize="7"
+          fill="rgba(156,163,175,0.7)"
+          textAnchor="middle"
+        >
+          Lower Back
+        </text>
+      )}
+      {s("Legs") > 0 && (
+        <text
+          x="100"
+          y="206"
+          fontSize="7"
+          fill="rgba(156,163,175,0.7)"
+          textAnchor="middle"
+        >
+          Glutes
+        </text>
+      )}
+      {s("Legs") > 0 && (
+        <text
+          x="100"
+          y="260"
+          fontSize="7"
+          fill="rgba(156,163,175,0.7)"
+          textAnchor="middle"
+        >
+          Hamstrings
+        </text>
+      )}
+      {s("Legs") > 0 && (
+        <text
+          x="100"
+          y="316"
+          fontSize="7"
+          fill="rgba(156,163,175,0.7)"
+          textAnchor="middle"
+        >
+          Calves
+        </text>
+      )}
+    </svg>
+  );
+};
+
+// ─── Main Component ───────────────────────────────────────
+
 const MuscleHeatmap: React.FC<MuscleHeatmapProps> = ({ data }) => {
+  const [view, setView] = useState<"front" | "back">("front");
+
   const totalGroups = MUSCLE_GROUPS.filter((g) => g.key !== "Cardio").length;
   const hitGroups = MUSCLE_GROUPS.filter(
     (g) => g.key !== "Cardio" && (data[g.key] ?? 0) > 0,
   ).length;
+
+  // Determine if back-dominant muscles are trained (auto-hint)
+  const hasBackMuscles = (data["Back"] ?? 0) > 0 || (data["Triceps"] ?? 0) > 0;
 
   return (
     <Card>
@@ -321,7 +583,45 @@ const MuscleHeatmap: React.FC<MuscleHeatmapProps> = ({ data }) => {
         </div>
       </CardHeader>
       <CardContent>
-        <BodyMapSVG data={data} />
+        {/* Front / Back toggle */}
+        <div className="mb-3 flex items-center justify-center">
+          <div className="flex rounded-lg bg-muted p-0.5">
+            <button
+              onClick={() => setView("front")}
+              className={`rounded-md px-4 py-1.5 text-xs font-medium transition-colors ${
+                view === "front"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Front
+            </button>
+            <button
+              onClick={() => setView("back")}
+              className={`relative rounded-md px-4 py-1.5 text-xs font-medium transition-colors ${
+                view === "back"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Back
+              {/* Pulse dot if back muscles are trained but user hasn't looked */}
+              {hasBackMuscles && view === "front" && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Body SVG */}
+        {view === "front" ? (
+          <FrontBodySVG data={data} />
+        ) : (
+          <BackBodySVG data={data} />
+        )}
 
         {/* Legend grid */}
         <div className="mt-3 grid grid-cols-2 gap-1.5">
