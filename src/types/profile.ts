@@ -13,6 +13,7 @@ export interface UserProfile {
   timezone: string;
   llmProvider: string;
   llmApiKey: string | null;
+  llmModel: string | null;
 }
 
 export interface UpdateProfileInput {
@@ -27,6 +28,7 @@ export interface UpdateProfileInput {
   timezone?: string;
   llmProvider?: string;
   llmApiKey?: string | null;
+  llmModel?: string | null;
 }
 
 export interface FavoriteExercise {
@@ -50,3 +52,28 @@ export const GENDER_OPTIONS = [
   { value: "female", label: "Female" },
   { value: "other", label: "Other" },
 ] as const;
+
+export const LLM_PROVIDERS = [
+  { value: "gemini", label: "Gemini" },
+  { value: "claude", label: "Anthropic" },
+  { value: "openai", label: "OpenAI" },
+] as const;
+
+export const LLM_MODELS: Record<string, { value: string; label: string }[]> = {
+  gemini: [
+    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+    { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+    { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+  ],
+  claude: [
+    { value: "claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
+    { value: "claude-haiku-4-20250414", label: "Claude Haiku 4" },
+  ],
+  openai: [
+    { value: "gpt-4o", label: "GPT-4o" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+    { value: "gpt-4.1", label: "GPT-4.1" },
+    { value: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
+    { value: "gpt-4.1-nano", label: "GPT-4.1 Nano" },
+  ],
+};

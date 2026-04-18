@@ -1,18 +1,20 @@
 // src/app/api/chat/route.ts
-import type { Content, Part } from "@google/genai";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import ai, { GEMINI_MODEL } from "@/lib/gemini";
 import {
   buildSystemPrompt,
   invalidatePromptCache,
 } from "@/lib/build-system-prompt";
-import { toolDeclarations, executeTool } from "@/lib/tools";
+import { executeTool } from "@/lib/tools";
 import { autoCompletePlanExercise } from "@/lib/plan-completion";
-import type { ChatMessage, GroundingSource } from "@/types/chat";
-import { getUserTimezone } from "@/db/queries/profile";
-import { getTodayForTimezone } from "@/lib/user-timezone";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getUserTimezone } from "@/db/queries/profile";
+import { getUserLLMConfig } from "@/db/queries/profile";
+import { getTodayForTimezone } from "@/lib/user-timezone";
+import { createLLMAdapter, toolSchemas } from "@/lib/llm";
+import type { ChatMessage, GroundingSource } from "@/types/chat";
+import type { ToolResult } from "@/lib/llm";
+import { LLMProviderError } from "@/lib/llm/errors";
 
 const MAX_TOOL_ROUNDS = 10;
 
@@ -24,55 +26,6 @@ const WRITE_TOOLS = new Set([
 
 const LOG_TOOLS = new Set(["logWorkout", "logBatchWorkouts"]);
 
-const toGeminiContents = (
-  messages: ChatMessage[],
-  imageBase64?: string | null,
-  imageMimeType?: string | null,
-): Content[] => {
-  return messages.map((msg, index) => {
-    const parts: Part[] = [];
-
-    if (imageBase64 && msg.role === "user" && index === messages.length - 1) {
-      parts.push({
-        inlineData: {
-          data: imageBase64,
-          mimeType: imageMimeType || "image/jpeg",
-        },
-      });
-    }
-
-    parts.push({ text: msg.content });
-
-    return {
-      role: msg.role === "assistant" ? "model" : "user",
-      parts,
-    };
-  });
-};
-
-const extractSources = (
-  candidate: NonNullable<
-    Awaited<ReturnType<typeof ai.models.generateContent>>["candidates"]
-  >[number],
-): GroundingSource[] => {
-  const chunks = candidate.groundingMetadata?.groundingChunks ?? [];
-
-  const seen = new Set<string>();
-  const sources: GroundingSource[] = [];
-
-  for (const chunk of chunks) {
-    const url = chunk.web?.uri;
-    const title = chunk.web?.title;
-
-    if (url && !seen.has(url)) {
-      seen.add(url);
-      sources.push({ title: title || url, url });
-    }
-  }
-
-  return sources;
-};
-
 export const POST = async (req: Request): Promise<Response> => {
   const session = await auth();
   if (!session?.user?.id) {
@@ -80,33 +33,67 @@ export const POST = async (req: Request): Promise<Response> => {
   }
 
   const userId = session.user.id;
-  // Rate limit: 20 requests per minute per user
-  const rateCheck = checkRateLimit(`chat:${userId}`, 20);
-  if (!rateCheck.allowed) {
-    return Response.json(
-      {
-        error: "Too many requests. Please wait a moment.",
-        retryAfterMs: rateCheck.resetInMs,
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil(rateCheck.resetInMs / 1000)),
+
+  // Get user's LLM config early — needed for rate limit decision
+  const llmConfig = await getUserLLMConfig(userId);
+  const hasOwnKey = !!llmConfig.apiKey;
+
+  // Rate limit only applies when using the server's Gemini key
+  if (!hasOwnKey) {
+    const rateCheck = checkRateLimit(`chat:${userId}`, 20);
+    if (!rateCheck.allowed) {
+      return Response.json(
+        {
+          error: "Too many requests. Please wait a moment.",
+          retryAfterMs: rateCheck.resetInMs,
         },
-      },
-    );
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil(rateCheck.resetInMs / 1000)),
+          },
+        },
+      );
+    }
   }
+
   const userTimezone = await getUserTimezone(userId);
 
   try {
-    const { messages, imageBase64, imageMimeType } = (await req.json()) as {
+    const {
+      messages,
+      imageBase64,
+      imageMimeType,
+      model: requestModel,
+    } = (await req.json()) as {
       messages: ChatMessage[];
       imageBase64?: string | null;
       imageMimeType?: string | null;
+      model?: string;
     };
 
     if (!messages?.length) {
       return Response.json({ error: "No messages provided" }, { status: 400 });
+    }
+
+    // Get user's LLM provider and API key
+    let adapter;
+    try {
+      adapter = createLLMAdapter(
+        llmConfig.provider,
+        llmConfig.apiKey,
+        requestModel || llmConfig.model || undefined,
+      );
+    } catch (error) {
+      return Response.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to initialize AI provider",
+        },
+        { status: 400 },
+      );
     }
 
     const systemPrompt = await buildSystemPrompt({
@@ -114,125 +101,97 @@ export const POST = async (req: Request): Promise<Response> => {
       name: session.user.name ?? "User",
     });
 
-    const contents: Content[] = toGeminiContents(
-      messages,
-      imageBase64,
-      imageMimeType,
-    );
-
     let finalText = "";
     let sources: GroundingSource[] = [];
     let usedFunctionCalling = false;
     let mutated = false;
 
     // Phase 1: Function calling loop
+    let response = await adapter.chat({
+      messages,
+      systemPrompt,
+      tools: toolSchemas,
+      imageBase64,
+      imageMimeType,
+    });
+
     for (let i = 0; i < MAX_TOOL_ROUNDS; i++) {
-      const response = await ai.models.generateContent({
-        model: GEMINI_MODEL,
-        contents,
-        config: {
-          systemInstruction: systemPrompt,
-          tools: [{ functionDeclarations: toolDeclarations }],
-        },
-      });
-
-      const candidate = response.candidates?.[0];
-      const parts = candidate?.content?.parts;
-
-      if (!parts?.length) {
-        finalText = "Sorry, I couldn't generate a response. Please try again.";
-        break;
-      }
-
-      const functionCalls = parts.filter((p) => p.functionCall);
-
-      if (functionCalls.length === 0) {
-        finalText = parts
-          .map((p) => p.text)
-          .filter(Boolean)
-          .join("");
+      if (response.toolCalls.length === 0) {
+        // No tool calls — we have the final text
+        finalText = response.text;
         break;
       }
 
       usedFunctionCalling = true;
 
-      const functionResponseParts: Part[] = [];
+      // Execute all tool calls
+      const toolResults: ToolResult[] = [];
 
-      for (const part of functionCalls) {
-        const { name, args } = part.functionCall!;
+      for (const toolCall of response.toolCalls) {
+        const result = await executeTool(toolCall.name, toolCall.args, userId);
 
-        if (!name) continue;
-
-        const toolArgs = args as Record<string, unknown>;
-        const result = await executeTool(name, toolArgs, userId);
-
-        if (WRITE_TOOLS.has(name)) {
+        if (WRITE_TOOLS.has(toolCall.name)) {
           mutated = true;
         }
 
         // Auto-mark plan exercise as completed after logging
-        if (LOG_TOOLS.has(name)) {
+        if (LOG_TOOLS.has(toolCall.name)) {
           const marked = await autoCompletePlanExercise({
             userId,
-            exerciseId: toolArgs.exerciseId as number,
-            exerciseSource: toolArgs.source as string,
+            exerciseId: toolCall.args.exerciseId as number,
+            exerciseSource: toolCall.args.source as string,
             performedAt:
-              (toolArgs.performedAt as string) ||
+              (toolCall.args.performedAt as string) ||
               getTodayForTimezone(userTimezone),
-            planExerciseId: toolArgs.planExerciseId as number | undefined,
+            planExerciseId: toolCall.args.planExerciseId as number | undefined,
           });
           if (marked) {
             mutated = true;
           }
         }
 
-        functionResponseParts.push({
-          functionResponse: {
-            name,
-            response: result as unknown as Record<string, unknown>,
-          },
+        toolResults.push({
+          id: toolCall.id,
+          name: toolCall.name,
+          result: result as unknown as Record<string, unknown>,
         });
       }
 
-      contents.push({ role: "model", parts: functionCalls });
-      contents.push({ role: "user", parts: functionResponseParts });
+      // Feed results back and get next response
+      response = await adapter.continueWithToolResults(
+        toolResults,
+        systemPrompt,
+        toolSchemas,
+      );
+    }
+
+    // If the loop ended without setting finalText (hit max rounds)
+    if (!finalText && response.text) {
+      finalText = response.text;
+    }
+
+    if (!finalText) {
+      finalText = "Sorry, I couldn't generate a response. Please try again.";
     }
 
     // Phase 2: If no function calls were used, retry with
-    // Google Search grounding for better general answers
-    if (!usedFunctionCalling && finalText) {
-      try {
-        const searchResponse = await ai.models.generateContent({
-          model: GEMINI_MODEL,
-          contents: toGeminiContents(messages, imageBase64, imageMimeType),
-          config: {
-            systemInstruction: systemPrompt,
-            tools: [{ googleSearch: {} }],
-          },
-        });
+    // search grounding for better general answers
+    if (!usedFunctionCalling) {
+      const searchResult = await adapter.searchGrounded({
+        messages,
+        systemPrompt,
+        imageBase64,
+        imageMimeType,
+      });
 
-        const searchCandidate = searchResponse.candidates?.[0];
-        const searchParts = searchCandidate?.content?.parts;
-
-        if (searchParts?.length) {
-          const searchText = searchParts
-            .map((p) => p.text)
-            .filter(Boolean)
-            .join("");
-
-          if (searchText) {
-            finalText = searchText;
-          }
-        }
-
-        if (searchCandidate) {
-          sources = extractSources(searchCandidate);
-        }
-      } catch {
-        // Google Search grounding failed — use the original
-        // function-calling response, which is already in finalText
+      if (searchResult.text) {
+        finalText = searchResult.text;
       }
+      sources = searchResult.sources;
     }
+
+    // Clean up adapter state
+    adapter.reset();
 
     // Revalidate affected pages so router.refresh() gets fresh data
     if (mutated) {
@@ -245,6 +204,14 @@ export const POST = async (req: Request): Promise<Response> => {
     return Response.json({ text: finalText, sources, mutated });
   } catch (error) {
     console.error("Chat API error:", error);
+
+    if (error instanceof LLMProviderError) {
+      return Response.json(
+        { error: error.userMessage },
+        { status: error.statusCode === 429 ? 429 : 400 },
+      );
+    }
+
     return Response.json(
       { error: "Failed to process chat request" },
       { status: 500 },

@@ -3,11 +3,13 @@
 import type React from "react";
 import { useState, useCallback, useEffect } from "react";
 import type { ChatMessage } from "@/types/chat";
+import { LLM_MODELS } from "@/types/profile";
 import MessageList from "@/components/chat/message-list";
 import ChatInput from "@/components/chat/chat-input";
 import EmptyState from "@/components/chat/empty-state";
 
 const STORAGE_KEY = "flexius-chat-history";
+const MODEL_STORAGE_KEY = "flexius-chat-model";
 const MAX_STORED_MESSAGES = 50;
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -23,7 +25,6 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
-// localStorage helpers — stripped of imageUrl since blob URLs don't survive reloads
 const loadStoredMessages = (): ChatMessage[] => {
   if (typeof window === "undefined") return [];
   try {
@@ -39,7 +40,6 @@ const loadStoredMessages = (): ChatMessage[] => {
 const saveMessages = (messages: ChatMessage[]): void => {
   if (typeof window === "undefined") return;
   try {
-    // Strip blob-URL image previews (they don't survive a reload) and cap size
     const sanitized = messages
       .map((msg) => ({
         role: msg.role,
@@ -49,16 +49,41 @@ const saveMessages = (messages: ChatMessage[]): void => {
       .slice(-MAX_STORED_MESSAGES);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
   } catch {
-    // storage full or disabled — silently ignore
+    // storage full or disabled
   }
 };
 
-const ChatClient: React.FC = () => {
+const getDefaultModel = (provider: string): string => {
+  const models = LLM_MODELS[provider];
+  return models?.[0]?.value ?? "gemini-2.5-flash";
+};
+
+const loadStoredModel = (provider: string): string => {
+  if (typeof window === "undefined") return getDefaultModel(provider);
+  try {
+    const stored = window.localStorage.getItem(MODEL_STORAGE_KEY);
+    if (!stored) return getDefaultModel(provider);
+    // Verify the stored model belongs to the current provider
+    const models = LLM_MODELS[provider] ?? [];
+    if (models.some((m) => m.value === stored)) return stored;
+    return getDefaultModel(provider);
+  } catch {
+    return getDefaultModel(provider);
+  }
+};
+
+interface ChatClientProps {
+  provider: string;
+  hasOwnKey: boolean;
+}
+
+const ChatClient: React.FC<ChatClientProps> = ({ provider, hasOwnKey }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [model, setModel] = useState(() => loadStoredModel(provider));
 
   // Load saved history on mount
   useEffect(() => {
@@ -66,10 +91,33 @@ const ChatClient: React.FC = () => {
     if (stored.length > 0) setMessages(stored);
   }, []);
 
-  // Persist whenever messages change
+  // Persist messages
   useEffect(() => {
     saveMessages(messages);
   }, [messages]);
+
+  // Persist model selection
+  const handleModelChange = useCallback(
+    (newModel: string) => {
+      if (
+        messages.length > 0 &&
+        !confirm("Switching models will clear your chat history. Continue?")
+      ) {
+        return;
+      }
+
+      setModel(newModel);
+      setMessages([]);
+
+      try {
+        window.localStorage.setItem(MODEL_STORAGE_KEY, newModel);
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // ignore
+      }
+    },
+    [messages.length],
+  );
 
   const handleImageSelect = useCallback((file: File) => {
     setImageFile(file);
@@ -125,6 +173,7 @@ const ChatClient: React.FC = () => {
             messages: apiMessages,
             imageBase64,
             imageMimeType,
+            model,
           }),
         });
 
@@ -155,7 +204,7 @@ const ChatClient: React.FC = () => {
         setIsLoading(false);
       }
     },
-    [messages, isLoading, imageFile, imagePreviewUrl],
+    [messages, isLoading, imageFile, imagePreviewUrl, model],
   );
 
   const handleSend = useCallback(() => {
@@ -202,6 +251,9 @@ const ChatClient: React.FC = () => {
         imageUrl={imagePreviewUrl}
         onImageSelect={handleImageSelect}
         onImageRemove={handleImageRemove}
+        provider={hasOwnKey ? provider : null}
+        model={model}
+        onModelChange={handleModelChange}
       />
     </div>
   );

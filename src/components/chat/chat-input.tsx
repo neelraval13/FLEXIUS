@@ -3,9 +3,10 @@
 import type React from "react";
 import { useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ImagePlus, Mic, MicOff } from "lucide-react";
+import { ArrowUp, ImagePlus, Mic, MicOff, ChevronDown } from "lucide-react";
 import ImagePreview from "@/components/chat/image-preview";
 import { useVoiceInput } from "@/lib/use-voice-input";
+import { LLM_MODELS } from "@/types/profile";
 
 interface ChatInputProps {
   value: string;
@@ -15,6 +16,9 @@ interface ChatInputProps {
   imageUrl: string | null;
   onImageSelect: (file: File) => void;
   onImageRemove: () => void;
+  provider: string | null;
+  model: string;
+  onModelChange: (model: string) => void;
 }
 
 const ACCEPTED_TYPES = "image/jpeg,image/png,image/webp,image/gif";
@@ -28,6 +32,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
   imageUrl,
   onImageSelect,
   onImageRemove,
+  provider,
+  model,
+  onModelChange,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,6 +75,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const displayValue =
     isListening && transcript ? `${value} ${transcript}`.trim() : value;
 
+  const availableModels = provider ? (LLM_MODELS[provider] ?? []) : [];
+
   return (
     <div className="border-t border-border bg-background p-3">
       {isListening && (
@@ -79,6 +88,27 @@ const ChatInput: React.FC<ChatInputProps> = ({
           {transcript ? `"${transcript}"` : "Listening..."}
         </div>
       )}
+
+      {/* Model selector — only when using own key */}
+      {provider && (
+        <div className="mb-2 flex items-center justify-start">
+          <div className="relative inline-flex">
+            <select
+              value={model}
+              onChange={(e) => onModelChange(e.target.value)}
+              className="appearance-none rounded-lg border border-border bg-muted py-1 pl-2.5 pr-7 text-[11px] font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus:ring-1 focus:ring-primary"
+            >
+              {availableModels.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+          </div>
+        </div>
+      )}
+
       <div className="flex items-end gap-2 rounded-2xl bg-muted px-3 py-2">
         {imageUrl && (
           <div className="mb-1 w-full">

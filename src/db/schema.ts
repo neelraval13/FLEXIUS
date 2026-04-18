@@ -121,6 +121,7 @@ export const userProfiles = sqliteTable("user_profiles", {
   timezone: text("timezone").notNull().default("Asia/Kolkata"),
   llmProvider: text("llm_provider").notNull().default("gemini"),
   llmApiKey: text("llm_api_key"),
+  llmModel: text("llm_model"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
