@@ -78,7 +78,7 @@ The AI has access to your full exercise database, workout history, and today's p
 - **Per-User Timezone** — all date calculations respect the user's profile timezone (default: Asia/Kolkata)
 
 ### Other
-- **Instagram Reel Analysis** — paste a reel URL, the AI identifies exercises shown and offers to add them to your database
+- **Instagram Reel Analysis** — paste a reel URL, the AI identifies exercises shown and offers to add them to your database (requires [Instagram Reel Analyzer](https://github.com/neelraval13/instagram-reel-analyzer) — a separate self-hosted service)
 - **Google Search Grounding** — general fitness/nutrition questions use Google Search for real-time information with source citations (Gemini provider only)
 - **Graceful Provider Errors** — invalid keys, rate limits, and billing issues return actionable user-facing messages
 - **Exercise CRUD** — full management of exercises, cardio/stretching, equipment, and muscle groups via settings
@@ -183,7 +183,7 @@ VAPID_PRIVATE_KEY=your-private-key
 # Cron Authentication (required — endpoints block when unset)
 CRON_SECRET=your-random-cron-secret
 
-# Optional: Instagram Reel Analyzer
+# Optional: Instagram Reel Analyzer (https://github.com/neelraval13/instagram-reel-analyzer)
 REEL_ANALYZER_URL=your-analyzer-url
 REEL_ANALYZER_TOKEN=your-analyzer-token
 ```
