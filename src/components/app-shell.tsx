@@ -3,7 +3,7 @@
 import type React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   MessageSquare,
@@ -13,10 +13,30 @@ import {
   LogOut,
   Sun,
   Moon,
+  Monitor,
+  Settings,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
+
 import NotificationBell from "@/components/notification-bell";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -31,7 +51,18 @@ interface AppShellProps {
 
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
+
+  const handleSignOut = () => {
+    try {
+      window.localStorage.removeItem("flexius-chat-history");
+      window.localStorage.removeItem("flexius-mini-chat-history");
+    } catch {
+      // ignore
+    }
+    signOut({ callbackUrl: "/login" });
+  };
 
   return (
     <div className="flex h-svh flex-col bg-background text-foreground">
@@ -52,42 +83,89 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </Link>
 
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="relative rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
-            title="Toggle theme"
-          >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute left-2 top-2 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </button>
-          <NotificationBell />
-          <Link
-            href="/profile"
-            className={`rounded-lg p-2 transition-colors ${
-              pathname.startsWith("/profile")
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <UserCircle className="h-6 w-6" />
-          </Link>
-          <button
-            onClick={() => {
-              // Clear chat history so a shared device doesn't leak conversations
-              try {
-                window.localStorage.removeItem("flexius-chat-history");
-                window.localStorage.removeItem("flexius-mini-chat-history");
-              } catch {
-                // ignore
+          {/* Theme toggle — quick flip */}
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  aria-label="Toggle theme"
+                />
               }
-              signOut({ callbackUrl: "/login" });
-            }}
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-destructive"
-            title="Sign Out"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
+            >
+              <Sun className="size-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute size-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </TooltipTrigger>
+            <TooltipContent>Toggle theme</TooltipContent>
+          </Tooltip>
+
+          <NotificationBell />
+
+          {/* User menu — consolidates profile + settings + sign out */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="User menu"
+                  className={cn(
+                    pathname.startsWith("/profile") &&
+                      "text-primary hover:text-primary",
+                  )}
+                />
+              }
+            >
+              <UserCircle className="size-5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="bottom">
+              <DropdownMenuLabel>Account</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => router.push("/profile")}
+                render={<button type="button" />}
+              >
+                <UserCircle className="size-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push("/settings")}
+                render={<button type="button" />}
+              >
+                <Settings className="size-4" />
+                Settings
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Theme</DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                <DropdownMenuRadioItem value="light">
+                  <Sun className="size-4" />
+                  Light
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark">
+                  <Moon className="size-4" />
+                  Dark
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system">
+                  <Monitor className="size-4" />
+                  System
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={handleSignOut}
+                render={<button type="button" />}
+              >
+                <LogOut className="size-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -107,11 +185,12 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 key={href}
                 href={href}
-                className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition ${
+                className={cn(
+                  "flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors",
                   isActive
                     ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                    : "text-muted-foreground hover:text-foreground",
+                )}
               >
                 <Icon className="h-5 w-5" />
                 <span>{label}</span>

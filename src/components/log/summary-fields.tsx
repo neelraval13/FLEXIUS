@@ -2,8 +2,10 @@
 "use client";
 
 import type React from "react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { ExerciseType } from "@/types/logs";
 
 interface SummaryFieldsProps {
@@ -93,30 +95,20 @@ const SummaryFields: React.FC<SummaryFieldsProps> = ({
           </div>
           <div className="w-20 space-y-1.5">
             <Label>Unit</Label>
-            <div className="flex gap-0.5 rounded-md bg-muted p-0.5">
-              <button
-                type="button"
-                className={`flex-1 rounded-sm px-2 py-1.5 text-xs font-medium transition-colors ${
-                  unit === "kg"
-                    ? "bg-background shadow-sm"
-                    : "text-muted-foreground"
-                }`}
-                onClick={() => onUnitChange("kg")}
-              >
+            <ToggleGroup
+              value={[unit]}
+              onValueChange={(values) => {
+                const next = values[0] as "kg" | "lbs" | undefined;
+                if (next) onUnitChange(next);
+              }}
+            >
+              <ToggleGroupItem value="kg" aria-label="Kilograms">
                 kg
-              </button>
-              <button
-                type="button"
-                className={`flex-1 rounded-sm px-2 py-1.5 text-xs font-medium transition-colors ${
-                  unit === "lbs"
-                    ? "bg-background shadow-sm"
-                    : "text-muted-foreground"
-                }`}
-                onClick={() => onUnitChange("lbs")}
-              >
+              </ToggleGroupItem>
+              <ToggleGroupItem value="lbs" aria-label="Pounds">
                 lbs
-              </button>
-            </div>
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
         </div>
       )}

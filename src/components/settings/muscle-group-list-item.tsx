@@ -3,9 +3,19 @@
 import type React from "react";
 import { useState, useTransition } from "react";
 import { Pencil, Loader2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { MuscleGroupItem } from "@/types/settings";
 import { updateMuscleGroup, deleteMuscleGroup } from "@/app/actions";
 import DeleteConfirmButton from "@/components/settings/delete-confirm-button";
@@ -81,19 +91,26 @@ const MuscleGroupListItem: React.FC<MuscleGroupListItemProps> = ({
       >
         <div className="space-y-1.5">
           <Label className="text-xs">Major Group</Label>
-          <select
+          <Select
             value={majorGroup}
-            onChange={(e) => setMajorGroup(e.target.value)}
+            onValueChange={(v) => {
+              if (v !== null) setMajorGroup(v);
+            }}
             disabled={isPending}
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            {existingMajorGroups.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-            <option value="__custom__">+ New group...</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {existingMajorGroups.map((g) => (
+                <SelectItem key={g} value={g}>
+                  {g}
+                </SelectItem>
+              ))}
+              <SelectSeparator />
+              <SelectItem value="__custom__">+ New group...</SelectItem>
+            </SelectContent>
+          </Select>
           {isCustom && (
             <Input
               value={customMajorGroup}
@@ -115,7 +132,11 @@ const MuscleGroupListItem: React.FC<MuscleGroupListItemProps> = ({
           />
         </div>
 
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         <div className="flex gap-2">
           <Button
@@ -147,9 +168,10 @@ const MuscleGroupListItem: React.FC<MuscleGroupListItemProps> = ({
       <span className="flex-1 text-sm">{item.targetMuscle}</span>
       <Button
         variant="ghost"
-        size="icon"
-        className="size-7 text-muted-foreground hover:text-foreground"
+        size="icon-sm"
+        className="text-muted-foreground hover:text-foreground"
         onClick={onEdit}
+        aria-label="Edit muscle group"
       >
         <Pencil className="size-3.5" />
       </Button>

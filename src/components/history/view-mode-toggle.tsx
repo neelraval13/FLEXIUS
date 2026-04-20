@@ -2,7 +2,8 @@
 
 import type React from "react";
 import { Calendar, List } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type ViewMode = "calendar" | "list";
 
@@ -16,34 +17,23 @@ const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
   onChangeViewMode,
 }) => {
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
-      <button
-        type="button"
-        onClick={() => onChangeViewMode("calendar")}
-        className={cn(
-          "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-          viewMode === "calendar"
-            ? "bg-background text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground",
-        )}
-      >
+    <ToggleGroup
+      value={[viewMode]}
+      onValueChange={(values) => {
+        const next = values[0] as ViewMode | undefined;
+        if (next) onChangeViewMode(next);
+      }}
+      className="rounded-lg"
+    >
+      <ToggleGroupItem value="calendar" aria-label="Calendar view">
         <Calendar className="h-3.5 w-3.5" />
         Calendar
-      </button>
-      <button
-        type="button"
-        onClick={() => onChangeViewMode("list")}
-        className={cn(
-          "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-          viewMode === "list"
-            ? "bg-background text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground",
-        )}
-      >
+      </ToggleGroupItem>
+      <ToggleGroupItem value="list" aria-label="List view">
         <List className="h-3.5 w-3.5" />
         List
-      </button>
-    </div>
+      </ToggleGroupItem>
+    </ToggleGroup>
   );
 };
 

@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createWorkoutLog, createBatchWorkoutLogs } from "@/app/actions";
 import { queueLog } from "@/lib/offline-queue";
 import type { SelectableExercise, SetEntry, ExerciseType } from "@/types/logs";
@@ -399,30 +400,20 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({
                       <Label className="text-xs text-muted-foreground">
                         Unit
                       </Label>
-                      <div className="flex gap-0.5 rounded-md bg-muted p-0.5">
-                        <button
-                          type="button"
-                          className={`flex-1 rounded-sm px-2 py-1.5 text-xs font-medium transition-colors ${
-                            unit === "kg"
-                              ? "bg-background shadow-sm"
-                              : "text-muted-foreground"
-                          }`}
-                          onClick={() => setUnit("kg")}
-                        >
+                      <ToggleGroup
+                        value={[unit]}
+                        onValueChange={(values) => {
+                          const next = values[0] as "kg" | "lbs" | undefined;
+                          if (next) setUnit(next);
+                        }}
+                      >
+                        <ToggleGroupItem value="kg" aria-label="Kilograms">
                           kg
-                        </button>
-                        <button
-                          type="button"
-                          className={`flex-1 rounded-sm px-2 py-1.5 text-xs font-medium transition-colors ${
-                            unit === "lbs"
-                              ? "bg-background shadow-sm"
-                              : "text-muted-foreground"
-                          }`}
-                          onClick={() => setUnit("lbs")}
-                        >
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="lbs" aria-label="Pounds">
                           lbs
-                        </button>
-                      </div>
+                        </ToggleGroupItem>
+                      </ToggleGroup>
                     </div>
                   )}
                 </div>

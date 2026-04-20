@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import SWRegister from "@/components/sw-register";
 import InstallPrompt from "@/components/install-prompt";
 import "./globals.css";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -62,7 +63,7 @@ const RootLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <body className="font-sans antialiased check_gok_chrome_installed">
         <ThemeProvider>
           <SessionProvider>
-            {children}
+            <TooltipProvider>{children}</TooltipProvider>
             <SWRegister />
             <InstallPrompt />
           </SessionProvider>

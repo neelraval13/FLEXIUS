@@ -4,11 +4,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Send, Mic, MicOff } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import MessageBubble from "@/components/chat/message-bubble";
 import TypingIndicator from "@/components/chat/typing-indicator";
 import { useVoiceInput } from "@/lib/use-voice-input";
+import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types/chat";
 
 interface MiniChatProps {
@@ -162,14 +163,16 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
                 "Swap an exercise",
                 "What weight next?",
               ].map((chip) => (
-                <button
+                <Button
                   key={chip}
                   type="button"
+                  variant="secondary"
+                  size="xs"
                   onClick={() => setInput(chip)}
-                  className="rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[11px] transition-colors hover:bg-muted"
+                  className="h-auto rounded-full px-2 py-0.5 text-[11px]"
                 >
                   {chip}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -200,7 +203,7 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
           </div>
         )}
         <div className="flex items-end gap-1.5">
-          <Textarea
+          <textarea
             value={
               isListening && transcript
                 ? `${input} ${transcript}`.trim()
@@ -208,7 +211,7 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
             }
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about your workout..."
-            className="max-h-20 flex-1 resize-none text-sm!"
+            className="max-h-20 flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none border-0 focus:outline-none focus:ring-0"
             rows={1}
           />
           {isSupported && (
@@ -217,12 +220,16 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
               variant="ghost"
               onClick={toggleListening}
               disabled={isLoading}
-              className={`h-8 w-8 shrink-0 ${isListening ? "text-primary bg-primary/10" : ""}`}
+              className={cn(
+                "size-8 shrink-0",
+                isListening && "bg-primary/10 text-primary",
+              )}
+              aria-label={isListening ? "Stop listening" : "Start voice input"}
             >
               {isListening ? (
-                <MicOff className="h-3.5 w-3.5" />
+                <MicOff className="size-3.5" />
               ) : (
-                <Mic className="h-3.5 w-3.5" />
+                <Mic className="size-3.5" />
               )}
             </Button>
           )}
@@ -230,9 +237,10 @@ const MiniChat: React.FC<MiniChatProps> = ({ planContext }) => {
             size="icon"
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
-            className="h-8 w-8 shrink-0"
+            className="size-8 shrink-0"
+            aria-label="Send message"
           >
-            <Send className="h-3.5 w-3.5" />
+            <Send className="size-3.5" />
           </Button>
         </div>
       </div>

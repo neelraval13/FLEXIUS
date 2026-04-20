@@ -3,7 +3,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateProfileAction } from "@/app/actions/profile-actions";
 import {
   Save,
   Loader2,
@@ -14,9 +13,20 @@ import {
   Plug,
   Unplug,
   Check,
+  ChevronRight,
 } from "lucide-react";
+
+import { updateProfileAction } from "@/app/actions/profile-actions";
 import { FITNESS_GOALS, GENDER_OPTIONS, LLM_PROVIDERS } from "@/types/profile";
 import type { UserProfile } from "@/types/profile";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 
 interface ProfileFormProps {
   profile: UserProfile | null;
@@ -59,7 +69,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   const [connectError, setConnectError] = useState<string | null>(null);
   const [justConnected, setJustConnected] = useState(false);
 
-  // The provider label for display
   const connectedProviderLabel = PROVIDER_LABELS[llmProvider] ?? llmProvider;
 
   function handleSaveProfile() {
@@ -137,368 +146,395 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   return (
     <div className="space-y-6">
       {/* Personal Details */}
-      <div className="space-y-4 rounded-2xl bg-neutral-900 p-4">
-        <h2 className="text-lg font-semibold text-white">Your Details</h2>
+      <Card className="rounded-2xl">
+        <CardContent className="space-y-4 py-2">
+          <h2 className="text-lg font-semibold">Your Details</h2>
 
-        {/* Name */}
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            className="w-full rounded-lg bg-neutral-800 px-3 py-2.5 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-        </div>
-
-        {/* Height */}
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">Height</label>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-              placeholder={heightUnit === "cm" ? "175" : "5.9"}
-              step={heightUnit === "cm" ? "1" : "0.1"}
-              className="flex-1 rounded-lg bg-neutral-800 px-3 py-2.5 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          {/* Name */}
+          <div className="space-y-1.5">
+            <Label htmlFor="profile-name" className="text-sm">
+              Name
+            </Label>
+            <Input
+              id="profile-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className="h-10"
             />
-            <div className="flex rounded-lg bg-neutral-800 p-1">
-              {["cm", "ft"].map((unit) => (
-                <button
-                  key={unit}
-                  onClick={() => setHeightUnit(unit)}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    heightUnit === unit
-                      ? "bg-blue-600 text-white"
-                      : "text-neutral-400 hover:text-white"
-                  }`}
+          </div>
+
+          {/* Height */}
+          <div className="space-y-1.5">
+            <Label htmlFor="profile-height" className="text-sm">
+              Height
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="profile-height"
+                type="number"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                placeholder={heightUnit === "cm" ? "175" : "5.9"}
+                step={heightUnit === "cm" ? "1" : "0.1"}
+                className="h-10 flex-1"
+              />
+              <ToggleGroup
+                value={[heightUnit]}
+                onValueChange={(values) => {
+                  const next = values[0];
+                  if (next) setHeightUnit(next);
+                }}
+              >
+                {["cm", "ft"].map((unit) => (
+                  <ToggleGroupItem
+                    key={unit}
+                    value={unit}
+                    aria-label={`Use ${unit}`}
+                  >
+                    {unit}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          </div>
+
+          {/* Weight */}
+          <div className="space-y-1.5">
+            <Label htmlFor="profile-weight" className="text-sm">
+              Weight
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="profile-weight"
+                type="number"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder={weightUnit === "kg" ? "70" : "154"}
+                step="0.1"
+                className="h-10 flex-1"
+              />
+              <ToggleGroup
+                value={[weightUnit]}
+                onValueChange={(values) => {
+                  const next = values[0];
+                  if (next) setWeightUnit(next);
+                }}
+              >
+                {["kg", "lbs"].map((unit) => (
+                  <ToggleGroupItem
+                    key={unit}
+                    value={unit}
+                    aria-label={`Use ${unit}`}
+                  >
+                    {unit}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          </div>
+
+          {/* Date of Birth */}
+          <div className="space-y-1.5">
+            <Label htmlFor="profile-dob" className="text-sm">
+              Date of Birth{" "}
+              <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <Input
+              id="profile-dob"
+              type="date"
+              value={dateOfBirth}
+              onChange={(e) => setDateOfBirth(e.target.value)}
+              className="h-10"
+            />
+          </div>
+
+          {/* Gender */}
+          <div className="space-y-1.5">
+            <Label className="text-sm">
+              Gender <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {GENDER_OPTIONS.map((opt) => (
+                <Button
+                  key={opt.value}
+                  type="button"
+                  variant={gender === opt.value ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() =>
+                    setGender(gender === opt.value ? "" : opt.value)
+                  }
                 >
-                  {unit}
-                </button>
+                  {opt.label}
+                </Button>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Weight */}
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">Weight</label>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder={weightUnit === "kg" ? "70" : "154"}
-              step="0.1"
-              className="flex-1 rounded-lg bg-neutral-800 px-3 py-2.5 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-            <div className="flex rounded-lg bg-neutral-800 p-1">
-              {["kg", "lbs"].map((unit) => (
-                <button
-                  key={unit}
-                  onClick={() => setWeightUnit(unit)}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    weightUnit === unit
-                      ? "bg-blue-600 text-white"
-                      : "text-neutral-400 hover:text-white"
-                  }`}
+          {/* Fitness Goal */}
+          <div className="space-y-1.5">
+            <Label className="text-sm">Fitness Goal</Label>
+            <div className="flex flex-wrap gap-2">
+              {FITNESS_GOALS.map((goal) => (
+                <Button
+                  key={goal.value}
+                  type="button"
+                  variant={fitnessGoal === goal.value ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() =>
+                    setFitnessGoal(fitnessGoal === goal.value ? "" : goal.value)
+                  }
                 >
-                  {unit}
-                </button>
+                  {goal.label}
+                </Button>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Date of Birth */}
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">
-            Date of Birth <span className="text-neutral-600">(optional)</span>
-          </label>
-          <input
-            type="date"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            className="w-full rounded-lg bg-neutral-800 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-        </div>
-
-        {/* Gender */}
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">
-            Gender <span className="text-neutral-600">(optional)</span>
-          </label>
-          <div className="flex gap-2">
-            {GENDER_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setGender(gender === opt.value ? "" : opt.value)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                  gender === opt.value
-                    ? "bg-blue-600 text-white"
-                    : "bg-neutral-800 text-neutral-400 hover:text-white"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Fitness Goal */}
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">Fitness Goal</label>
-          <div className="flex flex-wrap gap-2">
-            {FITNESS_GOALS.map((goal) => (
-              <button
-                key={goal.value}
-                onClick={() =>
-                  setFitnessGoal(fitnessGoal === goal.value ? "" : goal.value)
-                }
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  fitnessGoal === goal.value
-                    ? "bg-blue-600 text-white"
-                    : "bg-neutral-800 text-neutral-400 hover:text-white"
-                }`}
-              >
-                {goal.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Save Profile */}
-        <button
-          onClick={handleSaveProfile}
-          disabled={isPending || !name.trim()}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isPending ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <Save className="h-5 w-5" />
-          )}
-          {saved ? "Saved!" : "Save Profile"}
-        </button>
-      </div>
+          {/* Save Profile */}
+          <Button
+            type="button"
+            onClick={handleSaveProfile}
+            disabled={isPending || !name.trim()}
+            className="h-11 w-full rounded-xl text-sm font-semibold"
+          >
+            {isPending ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <Save className="size-5" />
+            )}
+            {saved ? "Saved!" : "Save Profile"}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* AI Coach Settings */}
-      <div className="space-y-4 rounded-2xl bg-neutral-900 p-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-blue-500" />
-          <h2 className="text-lg font-semibold text-white">AI Coach</h2>
-        </div>
-
-        {/* ── State: Flexius Intelligence (idle) ── */}
-        {coachState === "idle" && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 rounded-xl bg-blue-600/10 px-4 py-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600/20">
-                <Sparkles className="h-4 w-4 text-blue-400" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-white">
-                  Flexius Intelligence
-                </p>
-                <p className="text-xs text-neutral-400">
-                  Ready to go — no setup needed
-                </p>
-              </div>
-              <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                ACTIVE
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setCoachState("configuring")}
-              className="flex w-full items-center justify-between rounded-xl border border-dashed border-neutral-700 px-4 py-3 transition-colors hover:border-neutral-500 hover:bg-neutral-800/50"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-800">
-                  <Key className="h-4 w-4 text-neutral-500" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium text-neutral-300">
-                    Bring your own AI
-                  </p>
-                  <p className="text-xs text-neutral-500">
-                    Use Claude, OpenAI, or your own Gemini key
-                  </p>
-                </div>
-              </div>
-              <span className="text-xs text-neutral-500">→</span>
-            </button>
+      <Card className="rounded-2xl">
+        <CardContent className="space-y-4 py-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="size-5 text-primary" />
+            <h2 className="text-lg font-semibold">AI Coach</h2>
           </div>
-        )}
 
-        {/* ── State: Configuring ── */}
-        {coachState === "configuring" && (
-          <div className="space-y-4">
-            {/* Back to Flexius */}
-            <button
-              type="button"
-              onClick={() => {
-                setCoachState("idle");
-                setLlmProvider("gemini");
-                setLlmApiKey("");
-                setShowKey(false);
-                setConnectError(null);
-              }}
-              className="flex w-full items-center gap-3 rounded-xl border border-neutral-700 px-4 py-3 transition-colors hover:bg-neutral-800/50"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-800">
-                <Sparkles className="h-4 w-4 text-neutral-500" />
+          {/* ── State: Flexius Intelligence (idle) ── */}
+          {coachState === "idle" && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 rounded-xl bg-primary/10 px-4 py-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/20">
+                  <Sparkles className="size-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Flexius Intelligence</p>
+                  <p className="text-xs text-muted-foreground">
+                    Ready to go — no setup needed
+                  </p>
+                </div>
+                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  ACTIVE
+                </span>
               </div>
-              <p className="text-sm text-neutral-300">
-                ← Back to Flexius Intelligence
-              </p>
-            </button>
 
-            {/* Provider picker */}
-            <div className="space-y-1.5">
-              <label className="text-sm text-neutral-400">Provider</label>
-              <div className="flex gap-2">
-                {LLM_PROVIDERS.map((p) => (
-                  <button
-                    key={p.value}
-                    onClick={() => {
-                      setLlmProvider(p.value);
-                      setLlmApiKey("");
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCoachState("configuring")}
+                className="h-auto w-full justify-between rounded-xl border-dashed px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <Key className="size-4 text-muted-foreground" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium">Bring your own AI</p>
+                    <p className="text-xs text-muted-foreground">
+                      Use Claude, OpenAI, or your own Gemini key
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Button>
+            </div>
+          )}
+
+          {/* ── State: Configuring ── */}
+          {coachState === "configuring" && (
+            <div className="space-y-4">
+              {/* Back to Flexius */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setCoachState("idle");
+                  setLlmProvider("gemini");
+                  setLlmApiKey("");
+                  setShowKey(false);
+                  setConnectError(null);
+                }}
+                className="h-auto w-full justify-start gap-3 rounded-xl px-4 py-3"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                  <Sparkles className="size-4 text-muted-foreground" />
+                </div>
+                <span className="text-sm">← Back to Flexius Intelligence</span>
+              </Button>
+
+              {/* Provider picker */}
+              <div className="space-y-1.5">
+                <Label className="text-sm">Provider</Label>
+                <div className="flex gap-2">
+                  {LLM_PROVIDERS.map((p) => (
+                    <Button
+                      key={p.value}
+                      type="button"
+                      variant={
+                        llmProvider === p.value ? "default" : "secondary"
+                      }
+                      onClick={() => {
+                        setLlmProvider(p.value);
+                        setLlmApiKey("");
+                        setConnectError(null);
+                      }}
+                      className="h-10 flex-1 rounded-lg text-sm font-medium"
+                    >
+                      {p.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* API Key */}
+              <div className="space-y-1.5">
+                <Label htmlFor="llm-api-key" className="text-sm">
+                  API Key
+                </Label>
+                <div className="relative">
+                  <Key className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="llm-api-key"
+                    type={showKey ? "text" : "password"}
+                    value={llmApiKey}
+                    onChange={(e) => {
+                      setLlmApiKey(e.target.value);
                       setConnectError(null);
                     }}
-                    className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      llmProvider === p.value
-                        ? "bg-blue-600 text-white"
-                        : "bg-neutral-800 text-neutral-400 hover:text-white"
-                    }`}
+                    placeholder={
+                      llmProvider === "claude"
+                        ? "sk-ant-..."
+                        : llmProvider === "openai"
+                          ? "sk-..."
+                          : "AIza..."
+                    }
+                    className="h-10 pl-9 pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setShowKey(!showKey)}
+                    className="absolute right-1 top-1/2 -translate-y-1/2"
+                    aria-label={showKey ? "Hide API key" : "Show API key"}
                   >
-                    {p.label}
-                  </button>
-                ))}
+                    {showKey ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            {/* API Key */}
-            <div className="space-y-1.5">
-              <label className="text-sm text-neutral-400">API Key</label>
-              <div className="relative">
-                <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
-                <input
-                  type={showKey ? "text" : "password"}
-                  value={llmApiKey}
-                  onChange={(e) => {
-                    setLlmApiKey(e.target.value);
-                    setConnectError(null);
-                  }}
-                  placeholder={
-                    llmProvider === "claude"
-                      ? "sk-ant-..."
-                      : llmProvider === "openai"
-                        ? "sk-..."
-                        : "AIza..."
-                  }
-                  className="w-full rounded-lg bg-neutral-800 py-2.5 pl-9 pr-10 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
-                >
-                  {showKey ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Error message */}
-            {connectError && (
-              <div className="rounded-lg bg-red-500/10 px-3 py-2">
-                <p className="text-xs text-red-400">{connectError}</p>
-              </div>
-            )}
-
-            {/* Connect button */}
-            <button
-              onClick={handleConnect}
-              disabled={isConnecting || !llmApiKey.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {isConnecting ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Plug className="h-5 w-5" />
+              {/* Error message */}
+              {connectError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{connectError}</AlertDescription>
+                </Alert>
               )}
-              Connect
-            </button>
-          </div>
-        )}
 
-        {/* ── State: Connected ── */}
-        {coachState === "connected" && (
-          <div className="space-y-3">
-            <div
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
-                justConnected ? "bg-emerald-500/10" : "bg-neutral-800"
-              }`}
-            >
-              <div
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                  justConnected ? "bg-emerald-500/20" : "bg-neutral-700"
-                }`}
+              {/* Connect button */}
+              <Button
+                type="button"
+                onClick={handleConnect}
+                disabled={isConnecting || !llmApiKey.trim()}
+                className="h-11 w-full rounded-xl bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
               >
-                {justConnected ? (
-                  <Check className="h-4 w-4 text-emerald-400" />
+                {isConnecting ? (
+                  <Loader2 className="size-5 animate-spin" />
                 ) : (
-                  <Sparkles className="h-4 w-4 text-blue-400" />
+                  <Plug className="size-5" />
                 )}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-white">
-                  {justConnected
-                    ? "Connected!"
-                    : `Using your own ${connectedProviderLabel} intelligence`}
-                </p>
-                <p className="text-xs text-neutral-400">
-                  {justConnected
-                    ? `${connectedProviderLabel} is now your AI coach`
-                    : "No rate limits · Pick models in chat"}
-                </p>
-              </div>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                  justConnected
-                    ? "bg-emerald-500/20 text-emerald-400"
-                    : "bg-blue-500/20 text-blue-400"
-                }`}
-              >
-                {justConnected
-                  ? "CONNECTED"
-                  : connectedProviderLabel.toUpperCase()}
-              </span>
+                Connect
+              </Button>
             </div>
+          )}
 
-            <button
-              type="button"
-              onClick={handleDisconnect}
-              disabled={isConnecting}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-700 py-2.5 text-sm text-neutral-400 transition-colors hover:border-red-500/50 hover:text-red-400"
-            >
-              {isConnecting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Unplug className="h-4 w-4" />
-              )}
-              Disconnect — switch back to Flexius Intelligence
-            </button>
-          </div>
-        )}
-      </div>
+          {/* ── State: Connected ── */}
+          {coachState === "connected" && (
+            <div className="space-y-3">
+              <div
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-4 py-3",
+                  justConnected ? "bg-emerald-500/10" : "bg-muted",
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                    justConnected
+                      ? "bg-emerald-500/20"
+                      : "bg-muted-foreground/10",
+                  )}
+                >
+                  {justConnected ? (
+                    <Check className="size-4 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <Sparkles className="size-4 text-primary" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    {justConnected
+                      ? "Connected!"
+                      : `Using your own ${connectedProviderLabel} intelligence`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {justConnected
+                      ? `${connectedProviderLabel} is now your AI coach`
+                      : "No rate limits · Pick models in chat"}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                    justConnected
+                      ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                      : "bg-primary/20 text-primary",
+                  )}
+                >
+                  {justConnected
+                    ? "CONNECTED"
+                    : connectedProviderLabel.toUpperCase()}
+                </span>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDisconnect}
+                disabled={isConnecting}
+                className="h-10 w-full rounded-xl text-sm text-muted-foreground hover:border-destructive/50 hover:text-destructive"
+              >
+                {isConnecting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Unplug className="size-4" />
+                )}
+                Disconnect — switch back to Flexius Intelligence
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

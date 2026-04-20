@@ -5,6 +5,9 @@ import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { Download, X } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -65,7 +68,7 @@ const InstallPrompt: React.FC = () => {
 
   return (
     <div className="fixed bottom-24 left-4 right-4 z-100 mx-auto max-w-sm animate-in slide-in-from-bottom-4 duration-300">
-      <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-lg">
+      <Card className="flex-row items-start gap-3 rounded-xl p-4 shadow-lg">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
           <Download className="h-5 w-5 text-primary" />
         </div>
@@ -77,27 +80,24 @@ const InstallPrompt: React.FC = () => {
             Add to your home screen for quick access at the gym.
           </p>
           <div className="mt-2.5 flex items-center gap-2">
-            <button
-              onClick={handleInstall}
-              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
+            <Button size="sm" onClick={handleInstall}>
               Install
-            </button>
-            <button
-              onClick={handleDismiss}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
+            </Button>
+            <Button size="sm" variant="ghost" onClick={handleDismiss}>
               Not now
-            </button>
+            </Button>
           </div>
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={handleDismiss}
-          className="shrink-0 text-muted-foreground hover:text-foreground"
+          aria-label="Dismiss install prompt"
+          className="shrink-0"
         >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+          <X className="size-4" />
+        </Button>
+      </Card>
     </div>
   );
 };

@@ -3,10 +3,22 @@
 import type React from "react";
 import { useState, useTransition } from "react";
 import { Loader2, X } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 import type { EquipmentItem, Difficulty } from "@/types/settings";
 import { DIFFICULTY_OPTIONS } from "@/types/settings";
 import { createCardioStretching } from "@/app/actions";
@@ -25,6 +37,20 @@ interface CardioStretchingFormProps {
     videoUrl: string;
   };
 }
+
+const difficultyTint = (d: Difficulty, active: boolean): string => {
+  if (!active) return "";
+  switch (d) {
+    case "Beginner":
+      return "!bg-emerald-500/20 !text-emerald-600 dark:!text-emerald-400 ring-1 ring-emerald-500/40";
+    case "Intermediate":
+      return "!bg-amber-500/20 !text-amber-600 dark:!text-amber-400 ring-1 ring-amber-500/40";
+    case "Advanced":
+      return "!bg-destructive/15 !text-destructive ring-1 ring-destructive/30";
+    default:
+      return "";
+  }
+};
 
 const CardioStretchingForm: React.FC<CardioStretchingFormProps> = ({
   equipment,
@@ -126,20 +152,26 @@ const CardioStretchingForm: React.FC<CardioStretchingFormProps> = ({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label className="text-xs">Category</Label>
-          <select
+          <Select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onValueChange={(v) => {
+              if (v !== null) setCategory(v);
+            }}
             disabled={isPending}
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <option value="">Select...</option>
-            {categoryOptions.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-            <option value="__custom__">+ New category...</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select..." />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryOptions.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+              <SelectSeparator />
+              <SelectItem value="__custom__">+ New category...</SelectItem>
+            </SelectContent>
+          </Select>
           {isCustomCategory && (
             <Input
               value={customCategory}
@@ -166,27 +198,24 @@ const CardioStretchingForm: React.FC<CardioStretchingFormProps> = ({
 
       <div className="space-y-1.5">
         <Label className="text-xs">Difficulty</Label>
-        <div className="flex gap-1.5">
+        <ToggleGroup
+          value={[difficulty]}
+          onValueChange={(values) => {
+            const next = values[0];
+            if (next) setDifficulty(next);
+          }}
+          disabled={isPending}
+        >
           {DIFFICULTY_OPTIONS.map((d: Difficulty) => (
-            <button
+            <ToggleGroupItem
               key={d}
-              type="button"
-              onClick={() => setDifficulty(d)}
-              disabled={isPending}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                difficulty === d
-                  ? d === "Beginner"
-                    ? "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/50"
-                    : d === "Intermediate"
-                      ? "bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/50"
-                      : "bg-red-500/20 text-red-400 ring-1 ring-red-500/50"
-                  : "bg-muted text-muted-foreground"
-              }`}
+              value={d}
+              className={cn("px-3", difficultyTint(d, difficulty === d))}
             >
               {d}
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
       </div>
 
       <div className="space-y-1.5">
@@ -250,7 +279,11 @@ const CardioStretchingForm: React.FC<CardioStretchingFormProps> = ({
         />
       </div>
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex gap-2">
         <Button

@@ -5,6 +5,14 @@ import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { Bell, BellOff, BellRing, Loader2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
 type PushState =
   | "loading"
   | "unsupported"
@@ -44,7 +52,6 @@ const NotificationBell: React.FC = () => {
       return;
     }
 
-    // Check if already subscribed
     navigator.serviceWorker.ready.then((reg) => {
       reg.pushManager.getSubscription().then((sub) => {
         setState(sub ? "subscribed" : "unsubscribed");
@@ -123,34 +130,42 @@ const NotificationBell: React.FC = () => {
     }
   };
 
+  const tooltipLabel =
+    state === "denied"
+      ? "Notifications blocked — enable in browser settings"
+      : state === "subscribed"
+        ? "Notifications on — tap to disable"
+        : "Enable notifications";
+
+  const srLabel =
+    state === "subscribed" ? "Disable notifications" : "Enable notifications";
+
   return (
-    <button
-      onClick={handleClick}
-      disabled={isProcessing || state === "denied"}
-      className="relative rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-      title={
-        state === "denied"
-          ? "Notifications blocked — enable in browser settings"
-          : state === "subscribed"
-            ? "Notifications on — tap to disable"
-            : "Enable notifications"
-      }
-    >
-      {isProcessing ? (
-        <Loader2 className="h-5 w-5 animate-spin" />
-      ) : state === "subscribed" ? (
-        <BellRing className="h-5 w-5 text-primary" />
-      ) : state === "denied" ? (
-        <BellOff className="h-5 w-5" />
-      ) : (
-        <Bell className="h-5 w-5" />
-      )}
-      <span className="sr-only">
-        {state === "subscribed"
-          ? "Disable notifications"
-          : "Enable notifications"}
-      </span>
-    </button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClick}
+            disabled={isProcessing || state === "denied"}
+            className={cn(state === "subscribed" && "text-primary")}
+            aria-label={srLabel}
+          />
+        }
+      >
+        {isProcessing ? (
+          <Loader2 className="size-5 animate-spin" />
+        ) : state === "subscribed" ? (
+          <BellRing className="size-5" />
+        ) : state === "denied" ? (
+          <BellOff className="size-5" />
+        ) : (
+          <Bell className="size-5" />
+        )}
+      </TooltipTrigger>
+      <TooltipContent>{tooltipLabel}</TooltipContent>
+    </Tooltip>
   );
 };
 

@@ -2,7 +2,9 @@
 
 import type React from "react";
 import { Search, X } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface SearchInputProps {
   value: string;
@@ -17,7 +19,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
 }) => {
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -25,12 +27,16 @@ const SearchInput: React.FC<SearchInputProps> = ({
         className="pl-9 pr-9"
       />
       {value && (
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
           onClick={() => onChange("")}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          className="absolute right-0.5 top-1/2 -translate-y-1/2"
+          aria-label="Clear search"
         >
-          <X className="size-4" />
-        </button>
+          <X className="size-3.5" />
+        </Button>
       )}
     </div>
   );

@@ -1,6 +1,8 @@
 import type React from "react";
 import { Bot } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+
 interface EmptyStateProps {
   onSuggestionClick: (suggestion: string) => void;
 }
@@ -28,14 +30,16 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggestionClick }) => {
       </div>
       <div className="flex max-w-sm flex-wrap justify-center gap-2">
         {suggestions.map((s) => (
-          <button
+          <Button
             key={s}
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => onSuggestionClick(s)}
-            className="bg-secondary hover:bg-secondary/80 rounded-full px-3 py-1.5 text-xs transition-colors"
+            className="rounded-full"
           >
             {s}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

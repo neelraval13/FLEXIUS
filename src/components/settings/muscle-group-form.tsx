@@ -3,9 +3,19 @@
 import type React from "react";
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createMuscleGroup } from "@/app/actions";
 
 interface MuscleGroupFormProps {
@@ -66,21 +76,26 @@ const MuscleGroupForm: React.FC<MuscleGroupFormProps> = ({
         <Label htmlFor="major-group" className="text-xs">
           Major Group
         </Label>
-        <select
-          id="major-group"
+        <Select
           value={majorGroup}
-          onChange={(e) => setMajorGroup(e.target.value)}
+          onValueChange={(v) => {
+            if (v !== null) setMajorGroup(v);
+          }}
           disabled={isPending}
-          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          <option value="">Select major group...</option>
-          {existingMajorGroups.map((g) => (
-            <option key={g} value={g}>
-              {g}
-            </option>
-          ))}
-          <option value="__custom__">+ New group...</option>
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select major group..." />
+          </SelectTrigger>
+          <SelectContent>
+            {existingMajorGroups.map((g) => (
+              <SelectItem key={g} value={g}>
+                {g}
+              </SelectItem>
+            ))}
+            <SelectSeparator />
+            <SelectItem value="__custom__">+ New group...</SelectItem>
+          </SelectContent>
+        </Select>
         {isCustom && (
           <Input
             value={customMajorGroup}
@@ -105,7 +120,11 @@ const MuscleGroupForm: React.FC<MuscleGroupFormProps> = ({
         />
       </div>
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex gap-2">
         <Button

@@ -4,6 +4,14 @@
 import type React from "react";
 import { useState } from "react";
 import { X, Plus, Minus, Minimize2, Maximize2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { useRestTimer } from "./rest-timer-context";
 
 const formatTime = (seconds: number): string => {
@@ -36,47 +44,72 @@ const RestTimerOverlay: React.FC = () => {
 
   if (minimized) {
     return (
-      <button
+      <Button
         onClick={() => setMinimized(false)}
-        className={`fixed bottom-20 left-4 z-80 flex h-12 items-center gap-2 rounded-full px-4 shadow-lg transition-all ${
-          isFinished
-            ? "animate-bounce bg-emerald-500 text-white"
-            : "bg-card border border-border text-foreground"
-        }`}
+        size="lg"
+        variant={isFinished ? "default" : "outline"}
+        className={cn(
+          "fixed bottom-20 left-4 z-80 h-12 gap-2 rounded-full px-4 shadow-lg",
+          isFinished &&
+            "animate-bounce bg-emerald-500 text-white hover:bg-emerald-600",
+        )}
+        aria-label="Expand rest timer"
       >
         <span className="text-sm font-bold">
           {formatTime(timer.remainingSeconds)}
         </span>
-        <Maximize2 className="h-3.5 w-3.5" />
-      </button>
+        <Maximize2 className="size-3.5" />
+      </Button>
     );
   }
 
   return (
     <div
-      className={`fixed bottom-24 left-1/2 z-80 -translate-x-1/2 rounded-2xl border p-4 shadow-2xl transition-all ${
+      className={cn(
+        "fixed bottom-24 left-1/2 z-80 -translate-x-1/2 rounded-2xl border p-4 shadow-2xl transition-all",
         isFinished
           ? "border-emerald-500/30 bg-emerald-500/10"
-          : "border-border bg-card"
-      }`}
+          : "border-border bg-card",
+      )}
     >
       {/* Top controls */}
       <div className="mb-2 flex items-center justify-between">
-        <button
-          onClick={() => setMinimized(true)}
-          className="rounded-lg p-1 text-muted-foreground hover:text-foreground"
-        >
-          <Minimize2 className="h-4 w-4" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setMinimized(true)}
+                aria-label="Minimize timer"
+              />
+            }
+          >
+            <Minimize2 className="size-4" />
+          </TooltipTrigger>
+          <TooltipContent>Minimize</TooltipContent>
+        </Tooltip>
+
         <span className="text-xs text-muted-foreground">
           {timer.exerciseName}
         </span>
-        <button
-          onClick={stopTimer}
-          className="rounded-lg p-1 text-muted-foreground hover:text-destructive"
-        >
-          <X className="h-4 w-4" />
-        </button>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={stopTimer}
+                aria-label="Stop timer"
+                className="hover:text-destructive"
+              />
+            }
+          >
+            <X className="size-4" />
+          </TooltipTrigger>
+          <TooltipContent>Stop timer</TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Circular timer */}
@@ -88,7 +121,7 @@ const RestTimerOverlay: React.FC = () => {
             cy={SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke="hsl(var(--muted))"
+            stroke="var(--muted)"
             strokeWidth={STROKE}
           />
           {/* Progress circle */}
@@ -97,7 +130,7 @@ const RestTimerOverlay: React.FC = () => {
             cy={SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke={isFinished ? "#10B981" : "hsl(var(--primary))"}
+            stroke={isFinished ? "#10B981" : "var(--primary)"}
             strokeWidth={STROKE}
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
@@ -124,39 +157,45 @@ const RestTimerOverlay: React.FC = () => {
       </div>
 
       {/* Add/subtract time */}
-      <div className="mt-3 flex items-center justify-center gap-3">
-        <button
+      <div className="mt-3 flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => addTime(-15)}
           disabled={timer.remainingSeconds < 15}
-          className="flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
+          className="gap-1 text-muted-foreground"
         >
-          <Minus className="h-3 w-3" />
+          <Minus className="size-3" />
           15s
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => addTime(15)}
-          className="flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-xs text-muted-foreground hover:text-foreground"
+          className="gap-1 text-muted-foreground"
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="size-3" />
           15s
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => addTime(30)}
-          className="flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-xs text-muted-foreground hover:text-foreground"
+          className="gap-1 text-muted-foreground"
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="size-3" />
           30s
-        </button>
+        </Button>
       </div>
 
       {/* Dismiss when finished */}
       {isFinished && (
-        <button
+        <Button
           onClick={stopTimer}
-          className="mt-3 w-full rounded-lg bg-emerald-500 py-2 text-sm font-semibold text-white"
+          className="mt-3 w-full rounded-lg bg-emerald-500 text-white hover:bg-emerald-600"
         >
           Dismiss
-        </button>
+        </Button>
       )}
     </div>
   );

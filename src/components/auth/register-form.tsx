@@ -9,7 +9,13 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2, UserPlus, Eye, EyeOff, Check, X } from "lucide-react";
 import Link from "next/link";
+
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PasswordRequirement {
   label: string;
@@ -85,160 +91,180 @@ const RegisterForm: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-neutral-950 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4 rounded-2xl bg-neutral-900 p-6"
-      >
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="mt-1 text-sm text-neutral-400">
-            Set up your fitness profile
-          </p>
-        </div>
+    <div className="flex min-h-svh items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-sm rounded-2xl">
+        <CardContent className="space-y-4 py-2">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="text-center">
+              <h1 className="font-heading text-2xl font-bold text-foreground">
+                Create Account
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Set up your fitness profile
+              </p>
+            </div>
 
-        {error && (
-          <div className="rounded-lg bg-red-900/30 p-3 text-center text-sm text-red-400">
-            {error}
-          </div>
-        )}
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            required
-            className="w-full rounded-lg bg-neutral-800 px-3 py-2.5 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                required
+                className="h-10"
+              />
+            </div>
 
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Choose a username"
-            required
-            autoComplete="username"
-            className="w-full rounded-lg bg-neutral-800 px-3 py-2.5 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Choose a username"
+                required
+                autoComplete="username"
+                className="h-10"
+              />
+            </div>
 
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">Password</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              autoComplete="new-password"
-              className="w-full rounded-lg bg-neutral-800 px-3 py-2.5 pr-10 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200"
-              tabIndex={-1}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4.5 w-4.5" />
-              ) : (
-                <Eye className="h-4.5 w-4.5" />
+            <div className="space-y-1.5">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="new-password"
+                  className="h-10 pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-1 top-1/2 -translate-y-1/2"
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </Button>
+              </div>
+
+              {password.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {PASSWORD_REQUIREMENTS.map((req, i) => (
+                    <li
+                      key={req.label}
+                      className={cn(
+                        "flex items-center gap-1.5 text-xs",
+                        requirementsMet[i]
+                          ? "text-emerald-500"
+                          : "text-destructive",
+                      )}
+                    >
+                      {requirementsMet[i] ? (
+                        <Check className="h-3 w-3 shrink-0" />
+                      ) : (
+                        <X className="h-3 w-3 shrink-0" />
+                      )}
+                      {req.label}
+                    </li>
+                  ))}
+                </ul>
               )}
-            </button>
-          </div>
+            </div>
 
-          {password.length > 0 && (
-            <ul className="mt-2 space-y-1">
-              {PASSWORD_REQUIREMENTS.map((req, i) => (
-                <li
-                  key={req.label}
+            <div className="space-y-1.5">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirm-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="new-password"
+                  className="h-10 pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
+                  className="absolute right-1 top-1/2 -translate-y-1/2"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </Button>
+              </div>
+
+              {confirmPassword.length > 0 && (
+                <p
                   className={cn(
                     "flex items-center gap-1.5 text-xs",
-                    requirementsMet[i] ? "text-green-400" : "text-red-400",
+                    passwordsMatch ? "text-emerald-500" : "text-destructive",
                   )}
                 >
-                  {requirementsMet[i] ? (
+                  {passwordsMatch ? (
                     <Check className="h-3 w-3 shrink-0" />
                   ) : (
                     <X className="h-3 w-3 shrink-0" />
                   )}
-                  {req.label}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  {passwordsMatch ? "Passwords match" : "Passwords don't match"}
+                </p>
+              )}
+            </div>
 
-        <div className="space-y-1.5">
-          <label className="text-sm text-neutral-400">Confirm Password</label>
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              autoComplete="new-password"
-              className="w-full rounded-lg bg-neutral-800 px-3 py-2.5 pr-10 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword((v) => !v)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200"
-              tabIndex={-1}
+            <Button
+              type="submit"
+              disabled={isPending || !allRequirementsMet || !passwordsMatch}
+              className="h-10 w-full rounded-xl text-sm font-semibold"
             >
-              {showConfirmPassword ? (
-                <EyeOff className="h-4.5 w-4.5" />
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
               ) : (
-                <Eye className="h-4.5 w-4.5" />
+                <UserPlus className="size-4" />
               )}
-            </button>
-          </div>
+              Create Account
+            </Button>
 
-          {confirmPassword.length > 0 && (
-            <p
-              className={cn(
-                "flex items-center gap-1.5 text-xs",
-                passwordsMatch ? "text-green-400" : "text-red-400",
-              )}
-            >
-              {passwordsMatch ? (
-                <Check className="h-3 w-3 shrink-0" />
-              ) : (
-                <X className="h-3 w-3 shrink-0" />
-              )}
-              {passwordsMatch ? "Passwords match" : "Passwords don't match"}
+            <p className="text-center text-xs text-muted-foreground">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-primary hover:text-primary/80"
+              >
+                Sign in
+              </Link>
             </p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={isPending || !allRequirementsMet || !passwordsMatch}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isPending ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <UserPlus className="h-5 w-5" />
-          )}
-          Create Account
-        </button>
-
-        <p className="text-center text-sm text-neutral-500">
-          Already have an account?{" "}
-          <Link href="/login" className="text-blue-500 hover:text-blue-400">
-            Sign in
-          </Link>
-        </p>
-      </form>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -2,8 +2,8 @@
 "use client";
 
 import type React from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface LogModeToggleProps {
   mode: "summary" | "per-set";
@@ -15,32 +15,29 @@ const LogModeToggle: React.FC<LogModeToggleProps> = ({
   onModeChange,
 }) => {
   return (
-    <div className="flex gap-1 rounded-lg bg-muted p-1">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className={cn(
-          "flex-1 text-xs",
-          mode === "summary" && "bg-background shadow-sm hover:bg-background",
-        )}
-        onClick={() => onModeChange("summary")}
+    <ToggleGroup
+      value={[mode]}
+      onValueChange={(values) => {
+        const next = values[0] as "summary" | "per-set" | undefined;
+        if (next) onModeChange(next);
+      }}
+      className="w-full"
+    >
+      <ToggleGroupItem
+        value="summary"
+        aria-label="Summary mode"
+        className="flex-1"
       >
         Summary
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className={cn(
-          "flex-1 text-xs",
-          mode === "per-set" && "bg-background shadow-sm hover:bg-background",
-        )}
-        onClick={() => onModeChange("per-set")}
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value="per-set"
+        aria-label="Per-set mode"
+        className="flex-1"
       >
         Per Set
-      </Button>
-    </div>
+      </ToggleGroupItem>
+    </ToggleGroup>
   );
 };
 

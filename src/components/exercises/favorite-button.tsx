@@ -4,8 +4,10 @@
 import type React from "react";
 import { useTransition } from "react";
 import { Heart } from "lucide-react";
-import { toggleFavorite } from "@/app/actions/favorite-actions";
+
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toggleFavorite } from "@/app/actions/favorite-actions";
 
 interface FavoriteButtonProps {
   exerciseId: number;
@@ -27,24 +29,23 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   };
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon-sm"
       onClick={handleClick}
       disabled={isPending}
-      className={cn(
-        "rounded-full p-1 transition-colors",
-        "hover:bg-muted/50 disabled:opacity-50",
-      )}
+      className="rounded-full"
       aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
     >
       <Heart
         className={cn(
-          "h-4 w-4 transition-colors",
+          "size-4 transition-colors",
           isFavorite
             ? "fill-red-500 text-red-500"
             : "text-muted-foreground hover:text-red-400",
         )}
       />
-    </button>
+    </Button>
   );
 };
 

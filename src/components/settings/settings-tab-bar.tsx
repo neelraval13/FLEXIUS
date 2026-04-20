@@ -2,7 +2,8 @@
 
 import type React from "react";
 import type { SettingsTab } from "@/types/settings";
-import { cn } from "@/lib/utils";
+
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface TabDefinition {
   key: SettingsTab;
@@ -22,22 +23,27 @@ const SettingsTabBar: React.FC<SettingsTabBarProps> = ({
   onTabChange,
 }) => {
   return (
-    <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
-      {tabs.map(({ key, label, icon: Icon }) => (
-        <button
-          key={key}
-          onClick={() => onTabChange(key)}
-          className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            activeTab === key
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:bg-muted/80",
-          )}
-        >
-          <Icon className="size-4" />
-          {label}
-        </button>
-      ))}
+    <div className="overflow-x-auto pb-1 scrollbar-none">
+      <ToggleGroup
+        value={[activeTab]}
+        onValueChange={(values) => {
+          const next = values[0] as SettingsTab | undefined;
+          if (next) onTabChange(next);
+        }}
+        className="rounded-lg"
+      >
+        {tabs.map(({ key, label, icon: Icon }) => (
+          <ToggleGroupItem
+            key={key}
+            value={key}
+            aria-label={label}
+            className="px-3"
+          >
+            <Icon className="size-4" />
+            {label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
     </div>
   );
 };

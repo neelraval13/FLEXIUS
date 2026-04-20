@@ -4,6 +4,8 @@ import type React from "react";
 import { useState, useCallback, useEffect } from "react";
 import type { ChatMessage } from "@/types/chat";
 import { LLM_MODELS } from "@/types/profile";
+
+import { Button } from "@/components/ui/button";
 import MessageList from "@/components/chat/message-list";
 import ChatInput from "@/components/chat/chat-input";
 import EmptyState from "@/components/chat/empty-state";
@@ -63,7 +65,6 @@ const loadStoredModel = (provider: string): string => {
   try {
     const stored = window.localStorage.getItem(MODEL_STORAGE_KEY);
     if (!stored) return getDefaultModel(provider);
-    // Verify the stored model belongs to the current provider
     const models = LLM_MODELS[provider] ?? [];
     if (models.some((m) => m.value === stored)) return stored;
     return getDefaultModel(provider);
@@ -85,18 +86,15 @@ const ChatClient: React.FC<ChatClientProps> = ({ provider, hasOwnKey }) => {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [model, setModel] = useState(() => loadStoredModel(provider));
 
-  // Load saved history on mount
   useEffect(() => {
     const stored = loadStoredMessages();
     if (stored.length > 0) setMessages(stored);
   }, []);
 
-  // Persist messages
   useEffect(() => {
     saveMessages(messages);
   }, [messages]);
 
-  // Persist model selection
   const handleModelChange = useCallback(
     (newModel: string) => {
       if (
@@ -124,7 +122,6 @@ const ChatClient: React.FC<ChatClientProps> = ({ provider, hasOwnKey }) => {
     setImagePreviewUrl(URL.createObjectURL(file));
   }, []);
 
-  // Clean up blob URL on unmount to prevent memory leak
   useEffect(() => {
     return () => {
       if (imagePreviewUrl) {
@@ -242,12 +239,15 @@ const ChatClient: React.FC<ChatClientProps> = ({ provider, hasOwnKey }) => {
       ) : (
         <>
           <div className="flex items-center justify-end border-b border-border px-4 py-2">
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
               onClick={handleClearHistory}
-              className="text-xs text-muted-foreground hover:text-destructive"
+              className="text-muted-foreground hover:text-destructive"
             >
               Clear history
-            </button>
+            </Button>
           </div>
           <MessageList messages={messages} isLoading={isLoading} />
         </>

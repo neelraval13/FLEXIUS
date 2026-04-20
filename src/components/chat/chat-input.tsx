@@ -2,11 +2,20 @@
 
 import type React from "react";
 import { useCallback, useRef } from "react";
+import { ArrowUp, ImagePlus, Mic, MicOff } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ImagePlus, Mic, MicOff, ChevronDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import ImagePreview from "@/components/chat/image-preview";
 import { useVoiceInput } from "@/lib/use-voice-input";
 import { LLM_MODELS } from "@/types/profile";
+import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   value: string;
@@ -92,20 +101,23 @@ const ChatInput: React.FC<ChatInputProps> = ({
       {/* Model selector — only when using own key */}
       {provider && (
         <div className="mb-2 flex items-center justify-start">
-          <div className="relative inline-flex">
-            <select
-              value={model}
-              onChange={(e) => onModelChange(e.target.value)}
-              className="appearance-none rounded-lg border border-border bg-muted py-1 pl-2.5 pr-7 text-[11px] font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus:ring-1 focus:ring-primary"
-            >
+          <Select
+            value={model}
+            onValueChange={(value) => {
+              if (value !== null) onModelChange(value);
+            }}
+          >
+            <SelectTrigger size="sm" className="text-[11px] font-medium">
+              <SelectValue placeholder="Select model" />
+            </SelectTrigger>
+            <SelectContent align="start">
               {availableModels.map((m) => (
-                <option key={m.value} value={m.value}>
+                <SelectItem key={m.value} value={m.value}>
                   {m.label}
-                </option>
+                </SelectItem>
               ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
-          </div>
+            </SelectContent>
+          </Select>
         </div>
       )}
 
@@ -128,6 +140,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           className="size-8 shrink-0 rounded-full"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
+          aria-label="Attach image"
         >
           <ImagePlus className="size-4" />
         </Button>
@@ -137,15 +150,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
           onChange={handleInput}
           placeholder="Ask your Flexius coach..."
           rows={1}
-          className="max-h-40 min-h-9 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm text-foreground placeholder-muted-foreground outline-none"
+          className="max-h-40 min-h-9 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm text-foreground placeholder:text-muted-foreground outline-none border-0 focus:outline-none focus:ring-0"
         />
         {isSupported && (
           <Button
             size="icon"
             variant="ghost"
-            className={`size-8 shrink-0 rounded-full ${isListening ? "text-primary bg-primary/10" : ""}`}
+            className={cn(
+              "size-8 shrink-0 rounded-full",
+              isListening && "bg-primary/10 text-primary",
+            )}
             onClick={toggleListening}
             disabled={isLoading}
+            aria-label={isListening ? "Stop listening" : "Start voice input"}
           >
             {isListening ? (
               <MicOff className="size-4" />
@@ -159,11 +176,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
           className="size-8 shrink-0 rounded-full"
           onClick={onSend}
           disabled={!canSend}
+          aria-label="Send message"
         >
           <ArrowUp className="size-4" />
         </Button>
       </div>
-      <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
+      <p className="mt-1.5 text-center text-[10px] text-muted-foreground`">
         AI can make mistakes. Verify important fitness advice.
       </p>
     </div>
