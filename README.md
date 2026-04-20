@@ -25,7 +25,7 @@ Flexius is a personal fitness app where an AI coach acts as your gym buddy. Inst
 
 The AI has access to your full exercise database, workout history, and today's plan — it doesn't guess, it looks things up.
 
-**Bring your own intelligence** — Flexius ships with a default AI coach (Gemini), but you can plug in your own API key for Anthropic (Claude), OpenAI, or your own Gemini key. Pick your model right from the chat.
+**Bring your own intelligence** — Flexius works out of the box with its built-in AI coach. Want more control? Plug in your own API key for Anthropic, OpenAI, or Gemini — and pick your model right from the chat.
 
 ## Features
 
@@ -153,7 +153,7 @@ The four catalog tables (`exercises`, `cardio_stretching`, `equipment`, `muscle_
 - Node.js 20+
 - pnpm
 - A [Turso](https://turso.tech) database
-- A [Google AI Studio](https://aistudio.google.com) API key (Gemini) — for the default AI coach
+- A [Google AI Studio](https://aistudio.google.com) API key (Gemini)
 
 ### Setup
 
@@ -170,7 +170,7 @@ Create `.env.local`:
 TURSO_DATABASE_URL=libsql://your-db.turso.io
 TURSO_AUTH_TOKEN=your-token
 
-# AI (default provider — users can bring their own keys via profile)
+# AI (server-side — users can also bring their own keys via profile)
 GEMINI_API_KEY=your-gemini-api-key
 
 # Auth
