@@ -71,7 +71,6 @@ interface AnthropicResponse {
 // ─── Converters ──────────────────────────────────────────
 
 const toAnthropicTools = (tools: ToolSchema[]): AnthropicTool[] => {
-  // Claude uses standard JSON Schema for input_schema — pass through directly
   return tools.map((tool) => ({
     name: tool.name,
     description: tool.description,
@@ -85,7 +84,6 @@ const toAnthropicMessages = (
   imageMimeType?: string | null,
 ): AnthropicMessage[] => {
   return messages.map((msg, index) => {
-    // Attach image to the last user message
     if (imageBase64 && msg.role === "user" && index === messages.length - 1) {
       const content: AnthropicContentBlock[] = [
         {
@@ -112,6 +110,7 @@ export const createClaudeAdapter = (
   model?: string,
 ): LLMAdapter => {
   const CLAUDE_MODEL = model || DEFAULT_CLAUDE_MODEL;
+
   // Internal conversation state for multi-turn tool calling
   let conversationMessages: AnthropicMessage[] = [];
 
@@ -159,7 +158,6 @@ export const createClaudeAdapter = (
     const text = textParts.map((b) => b.text).join("");
 
     if (toolUses.length > 0) {
-      // Store the assistant's response (with tool_use blocks) for multi-turn
       conversationMessages.push({
         role: "assistant",
         content: response.content,
@@ -196,7 +194,6 @@ export const createClaudeAdapter = (
     },
 
     async continueWithToolResults(results, systemPrompt, tools) {
-      // Append tool results as a user message with tool_result blocks
       const toolResultBlocks: AnthropicContentBlock[] = results.map((r) => ({
         type: "tool_result" as const,
         tool_use_id: r.id ?? "",
@@ -218,8 +215,6 @@ export const createClaudeAdapter = (
     },
 
     async searchGrounded(params) {
-      // Claude doesn't have native search grounding.
-      // Fall back to a regular chat call without tools.
       try {
         const messages = toAnthropicMessages(
           params.messages,
@@ -239,6 +234,13 @@ export const createClaudeAdapter = (
             max_tokens: MAX_TOKENS,
             system: params.systemPrompt,
             messages,
+            tools: [
+              {
+                type: "web_search_20250305",
+                name: "web_search",
+                max_uses: 3,
+              },
+            ],
           }),
         });
 
@@ -246,13 +248,51 @@ export const createClaudeAdapter = (
           return { text: "", sources: [] };
         }
 
-        const data = (await response.json()) as AnthropicResponse;
+        const data = (await response.json()) as {
+          content: Array<
+            | { type: "text"; text: string }
+            | {
+                type: "web_search_tool_result";
+                content: Array<{
+                  type: "web_search_result";
+                  url: string;
+                  title: string;
+                }>;
+              }
+          >;
+        };
+
         const text = data.content
-          .filter((b): b is AnthropicTextBlock => b.type === "text")
-          .map((b) => b.text)
+          .filter((b) => b.type === "text")
+          .map((b) => (b as { type: "text"; text: string }).text)
           .join("");
 
-        return { text, sources: [] };
+        const sources = data.content
+          .filter((b) => b.type === "web_search_tool_result")
+          .flatMap((b) =>
+            (
+              b as {
+                type: "web_search_tool_result";
+                content: Array<{
+                  type: "web_search_result";
+                  url: string;
+                  title: string;
+                }>;
+              }
+            ).content
+              .filter((r) => r.type === "web_search_result")
+              .map((r) => ({ title: r.title, url: r.url })),
+          );
+
+        // Deduplicate sources
+        const seen = new Set<string>();
+        const uniqueSources = sources.filter((s) => {
+          if (seen.has(s.url)) return false;
+          seen.add(s.url);
+          return true;
+        });
+
+        return { text, sources: uniqueSources };
       } catch {
         return { text: "", sources: [] };
       }

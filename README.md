@@ -124,7 +124,7 @@ The chat API implements a two-phase architecture:
 
 **Phase 1 — Tool Loop (up to 10 rounds):** The LLM receives the user message along with a dynamic system prompt containing the user's profile, exercise database (with IDs), today's plan, and favorites. It decides which tools to call — logging workouts, querying history, saving plans, searching exercises, creating new exercises, or analyzing reels. Results feed back into the conversation for multi-step reasoning. The system prompt is cached per-user with a 30-second TTL to reduce DB queries.
 
-**Phase 2 — Search Grounding:** If no tools were called (general question), the same query re-runs with search grounding enabled (Gemini uses Google Search; Claude and OpenAI fall back to a plain response).
+**Phase 2 — Search Grounding:** If no tools were called (general question), the same query re-runs with web search enabled. All three providers support this natively — Gemini uses Google Search, Claude uses its built-in web search tool, and OpenAI uses web search preview. Results include source citations.
 
 ### Offline Data Flow
 

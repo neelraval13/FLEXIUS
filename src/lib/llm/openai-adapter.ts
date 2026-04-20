@@ -51,6 +51,10 @@ interface OpenAIResponse {
       role: "assistant";
       content: string | null;
       tool_calls?: OpenAIToolCall[];
+      annotations?: Array<{
+        type: string;
+        url_citation?: { url: string; title: string };
+      }>;
     };
     finish_reason: "stop" | "tool_calls" | "length" | "content_filter";
   }>;
@@ -59,7 +63,6 @@ interface OpenAIResponse {
 // ─── Converters ──────────────────────────────────────────
 
 const toOpenAITools = (tools: ToolSchema[]): OpenAITool[] => {
-  // OpenAI uses standard JSON Schema — pass through directly
   return tools.map((tool) => ({
     type: "function" as const,
     function: {
@@ -81,7 +84,6 @@ const toOpenAIMessages = (
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
 
-    // Attach image to the last user message
     if (imageBase64 && msg.role === "user" && i === messages.length - 1) {
       const mimeType = imageMimeType || "image/jpeg";
       const dataUrl = `data:${mimeType};base64,${imageBase64}`;
@@ -107,6 +109,7 @@ export const createOpenAIAdapter = (
   model?: string,
 ): LLMAdapter => {
   const OPENAI_MODEL = model || DEFAULT_OPENAI_MODEL;
+
   // Internal conversation state for multi-turn tool calling
   let conversationMessages: OpenAIMessage[] = [];
 
@@ -150,7 +153,6 @@ export const createOpenAIAdapter = (
     const toolCalls = message.tool_calls ?? [];
 
     if (toolCalls.length > 0) {
-      // Store assistant's response for multi-turn
       conversationMessages.push({
         role: "assistant",
         content: message.content,
@@ -192,7 +194,6 @@ export const createOpenAIAdapter = (
     },
 
     async continueWithToolResults(results, _systemPrompt, tools) {
-      // Append tool result messages
       for (const r of results) {
         conversationMessages.push({
           role: "tool",
@@ -206,8 +207,6 @@ export const createOpenAIAdapter = (
     },
 
     async searchGrounded(params) {
-      // OpenAI doesn't have native search grounding in the standard API.
-      // Fall back to a regular chat call without tools.
       try {
         const messages = toOpenAIMessages(
           params.systemPrompt,
@@ -216,10 +215,46 @@ export const createOpenAIAdapter = (
           params.imageMimeType,
         );
 
-        const response = await callOpenAI(messages, []);
-        const text = response.choices[0]?.message.content ?? "";
+        const response = await fetch(OPENAI_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: OPENAI_MODEL,
+            max_tokens: MAX_TOKENS,
+            messages,
+            tools: [{ type: "web_search_preview" }],
+          }),
+        });
 
-        return { text, sources: [] };
+        if (!response.ok) {
+          return { text: "", sources: [] };
+        }
+
+        const data = (await response.json()) as OpenAIResponse;
+        const text = data.choices[0]?.message.content ?? "";
+
+        // OpenAI includes search annotations in the message
+        const annotations = data.choices[0]?.message.annotations;
+
+        const sources = (annotations ?? [])
+          .filter((a) => a.type === "url_citation" && a.url_citation)
+          .map((a) => ({
+            title: a.url_citation!.title,
+            url: a.url_citation!.url,
+          }));
+
+        // Deduplicate
+        const seen = new Set<string>();
+        const uniqueSources = sources.filter((s) => {
+          if (seen.has(s.url)) return false;
+          seen.add(s.url);
+          return true;
+        });
+
+        return { text, sources: uniqueSources };
       } catch {
         return { text: "", sources: [] };
       }
